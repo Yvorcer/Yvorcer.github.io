@@ -128,12 +128,12 @@
   .watch:hover { background: var(--surface); }
 
   /* Wider than its column: the photo's dark left side runs under the copy and fades into the page. */
-  .stage { position: relative; width: 190%; margin-left: -70%; }
-  .desk { width: 100%; height: auto; filter: saturate(0.8) brightness(0.92); }
-  /* The laptop's display, measured from the photo (2100 × 1350 crop). */
-  .screen { position: absolute; z-index: 2; left: 40.429%; top: 36.148%; width: 45.095%; height: 43.407%; overflow: hidden; background: #000; border-radius: 0.3%; }
+  .stage { position: relative; width: 185%; margin-left: -33%; }
+  .desk { width: 100%; height: auto; }
+  /* The laptop's display: a 16-inch MacBook Pro shot straight on, measured from its lid. */
+  .screen { position: absolute; z-index: 2; left: 28.874%; top: 28.210%; width: 38.502%; height: 36.083%; overflow: hidden; background: #000; border-radius: 0.3%; }
   .screen video { width: 100%; height: 100%; object-fit: cover; }
-  .stage::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: rgba(11, 16, 40, 0.28); }
+  .stage::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: rgba(11, 16, 40, 0.12); }
   .stage::after {
     content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
     background:
@@ -166,7 +166,17 @@
     transition: border-color 0.2s;
   }
   .feature:hover { border-color: rgba(108, 240, 255, 0.28); }
-  .feature img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; background: var(--surface); border-bottom: 1px solid var(--line); }
+  .feature .media { position: relative; border-bottom: 1px solid var(--line); }
+  .feature video { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; background: var(--surface); }
+  /* A frosted slice of QuickSnip's toolbar; the tool the clip is using lights up. */
+  .chip {
+    position: absolute; top: 12px; right: 12px; display: flex; gap: 2px; padding: 5px; border-radius: 11px;
+    background: rgba(20, 24, 40, 0.72); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+  }
+  .chip i { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 7px; color: rgba(255, 255, 255, 0.72); transition: background 0.18s, color 0.18s; }
+  .chip i.on { background: rgba(255, 255, 255, 0.2); color: #fff; }
+  .chip .ico { width: 20px; height: 20px; }
   .feature-body { padding: 22px 24px 26px; }
   .feature-body h3 { font-size: 21px; margin-bottom: 8px; }
   .feature-body p { margin: 0; color: var(--muted); font-size: 16px; }
@@ -233,11 +243,11 @@
   @media (max-width: 900px) {
     .hero-grid { grid-template-columns: minmax(0, 1fr); padding-inline: 20px; }
     .hero-copy { padding-block: 32px 0; }
-    /* Zoom in so the laptop (centered at 62.5% of the photo) sits in the middle. */
-    .stage { width: 130%; margin-left: -31%; margin-top: -24px; }
+    /* Zoom in a little so the laptop (48% across the photo) fills the width. */
+    .stage { width: 130%; margin-left: -12%; margin-top: -24px; }
   }
   @media (max-width: 600px) {
-    .stage { width: 165%; margin-left: -53%; }
+    .stage { width: 160%; margin-left: -27%; }
   }
   @media (max-width: 700px) {
     .nav nav { display: none; }
@@ -257,6 +267,36 @@
 </head>
 <body>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="t-window" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 9.5h18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="7.3" r=".8" fill="currentColor"/><circle cx="8.6" cy="7.3" r=".8" fill="currentColor"/></symbol>
+  <symbol id="t-area" viewBox="0 0 24 24"><path d="M4 9V6a2 2 0 0 1 2-2h3M15 4h3a2 2 0 0 1 2 2v3M20 15v3a2 2 0 0 1-2 2h-3M9 20H6a2 2 0 0 1-2-2v-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="t-magnifier" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 15l5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="t-nudge" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="9.2" y="4" width="5.6" height="5.6" rx="1.3"/><rect x="3" y="11.2" width="5.6" height="5.6" rx="1.3"/><rect x="9.2" y="11.2" width="5.6" height="5.6" rx="1.3"/><rect x="15.4" y="11.2" width="5.6" height="5.6" rx="1.3"/></g><path d="M12 6l-1.1 1.4h2.2z" fill="currentColor"/></symbol>
+  <symbol id="t-resize" viewBox="0 0 24 24"><path d="M14 4h6v6M10 20H4v-6M20 4l-6.5 6.5M4 20l6.5-6.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="t-copy" viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="11.5" height="11.5" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M15.5 8.5V6.2A2.2 2.2 0 0 0 13.3 4H6.2A2.2 2.2 0 0 0 4 6.2v7.1a2.2 2.2 0 0 0 2.2 2.2h2.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="t-save" viewBox="0 0 24 24"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19.5h14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="t-fullscreen" viewBox="0 0 24 24"><rect x="2.5" y="4" width="19" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.5 20.5h7M12 17v3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="t-pin" viewBox="0 0 24 24"><path d="M9 3.5h6M10 3.5v6l-3 3.5h10l-3-3.5v-6M12 13v7.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="t-move" viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-2.5 2.5M12 3l2.5 2.5M12 21l-2.5-2.5M12 21l2.5-2.5M3 12l2.5-2.5M3 12l2.5 2.5M21 12l-2.5-2.5M21 12l-2.5 2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="t-zoom" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 15l5 5M10.5 8v5M8 10.5h5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="t-close" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="t-rect" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="t-ellipse" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="8.5" ry="6.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="t-line" viewBox="0 0 24 24"><path d="M5 19L19 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="t-arrow" viewBox="0 0 24 24"><path d="M5 19L18.5 5.5M10 5.5h8.5V14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="t-pen" viewBox="0 0 24 24"><path d="M3.5 15.5c2-5.5 4-5.5 5-1.8s2.6 3.8 4.6-.8 3.6-4 7.4-.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="t-highlighter" viewBox="0 0 24 24"><path d="M15 4l5 5-8.5 8.5H7.5v-4zM5 20.5h7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="t-text" viewBox="0 0 24 24"><text x="12" y="16.6" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">Aa</text></symbol>
+  <symbol id="t-step" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><text x="12" y="16" text-anchor="middle" font-size="11" font-weight="700" fill="currentColor">1</text></symbol>
+  <symbol id="t-mosaic" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4 4h8v8H4zM12 12h8v8h-8z" fill="currentColor" opacity=".85"/></symbol>
+  <symbol id="t-blur" viewBox="0 0 24 24"><path d="M12 3.2c3.9 4.6 6 7.9 6 10.8a6 6 0 0 1-12 0c0-2.9 2.1-6.2 6-10.8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="t-blue" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="#007AFF" stroke="#fff" stroke-opacity=".5"/></symbol>
+  <symbol id="t-yellow" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7" fill="#FFCC00" stroke="#fff" stroke-opacity=".5"/></symbol>
+  <symbol id="t-thicker" viewBox="0 0 24 24"><path d="M5 6.5h14" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M5 12h14" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M5 17.8h14" stroke="currentColor" stroke-width="4.2" stroke-linecap="round"/></symbol>
+  <symbol id="t-delete" viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.8h4V7M7 7l1 12.5h8L17 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="t-undo" viewBox="0 0 24 24"><path d="M9 5L4 10l5 5M4 10h11a5 5 0 0 1 0 10h-2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="t-redo" viewBox="0 0 24 24"><path d="M15 5l5 5-5 5M20 10H9a5 5 0 0 0 0 10h2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</defs></svg>
 <header class="nav">
   <div class="wrap">
     <a class="brand" href="#top"><img src="media/icon.svg" alt="">QuickSnip</a>
@@ -284,8 +324,8 @@
         <p class="meta">Version 1.1.0 · macOS 14 or later · Apple Silicon and Intel · Free</p>
       </div>
       <div class="stage">
-        <img class="desk" src="media/desk-1300.webp" srcset="media/desk-1300.webp 1300w, media/desk-2100.webp 2100w"
-             sizes="(max-width: 900px) 100vw, 62vw" width="2100" height="1350" alt="">
+        <img class="desk" src="media/night-desk-1400.webp" srcset="media/night-desk-1400.webp 1400w, media/night-desk-2400.webp 2400w"
+             sizes="(max-width: 900px) 100vw, 62vw" width="2400" height="1600" alt="">
         <div class="screen">
           <video id="demo" src="media/hero-loop.mp4" poster="media/poster.webp" muted autoplay loop playsinline preload="auto"
                  aria-label="QuickSnip demo: select part of The Starry Night, mark it up with single-key tools, copy and paste it, copy the full screen with F, and pin a crop of Girl with a Pearl Earring above other windows"></video>
@@ -324,52 +364,92 @@
 
       <div class="features">
         <article class="feature">
-          <img src="media/features/capture.webp" loading="lazy" alt="Hovering highlights each window, a click grabs one, and dragging selects any area">
+          <div class="media">
+            <video class="clip" src="media/features/capture.mp4" poster="media/features/capture-poster.webp" muted loop playsinline preload="none"
+                   data-timeline="0:0,6.2:1" aria-label="Hovering highlights each window, a click grabs one, and dragging selects any area"></video>
+            <div class="chip" aria-hidden="true"><i><svg class="ico"><use href="#t-window"/></svg></i><i><svg class="ico"><use href="#t-area"/></svg></i></div>
+          </div>
           <div class="feature-body"><h3>Area and window capture</h3>
             <p>The screen freezes the moment you start, so menus and hover states stay put. Hover a window to grab it whole, or drag any area.</p></div>
         </article>
         <article class="feature">
-          <img src="media/features/precision.webp" loading="lazy" alt="The magnifier follows the cursor over the moon, then the selection is nudged with the arrow keys and resized by a handle">
+          <div class="media">
+            <video class="clip" src="media/features/precision.mp4" poster="media/features/precision-poster.webp" muted loop playsinline preload="none"
+                   data-timeline="0:0,3.6:1,4.8:2" aria-label="The magnifier follows the cursor over the moon, then the selection is nudged with the arrow keys and resized by a handle"></video>
+            <div class="chip" aria-hidden="true"><i><svg class="ico"><use href="#t-magnifier"/></svg></i><i><svg class="ico"><use href="#t-nudge"/></svg></i><i><svg class="ico"><use href="#t-resize"/></svg></i></div>
+          </div>
           <div class="feature-body"><h3>Pixel-accurate</h3>
             <p>A magnifier shows the pixels and color under the cursor. Nudge with the arrow keys, resize with the handles. Captures are full Retina resolution and never resampled.</p></div>
         </article>
         <article class="feature">
-          <img src="media/features/finish.webp" loading="lazy" alt="C copies the highlighted window, S saves a screenshot to the desktop, F copies the whole screen">
+          <div class="media">
+            <video class="clip" src="media/features/finish.mp4" poster="media/features/finish-poster.webp" muted loop playsinline preload="none"
+                   data-timeline="0:0,3.07:1,5.2:2" aria-label="C copies the highlighted window, S saves a screenshot to the desktop, F copies the whole screen"></video>
+            <div class="chip" aria-hidden="true"><i><svg class="ico"><use href="#t-copy"/></svg></i><i><svg class="ico"><use href="#t-save"/></svg></i><i><svg class="ico"><use href="#t-fullscreen"/></svg></i></div>
+          </div>
           <div class="feature-body"><h3>One key to finish</h3>
             <p><kbd>C</kbd> copies, <kbd>S</kbd> saves, <kbd>P</kbd> pins, <kbd>F</kbd> copies the full screen.</p></div>
         </article>
         <article class="feature">
-          <img src="media/features/pin.webp" loading="lazy" alt="A crop of Girl with a Pearl Earring is pinned, dragged over another window, zoomed and closed">
+          <div class="media">
+            <video class="clip" src="media/features/pin.mp4" poster="media/features/pin-poster.webp" muted loop playsinline preload="none"
+                   data-timeline="0:0,1:1,2.47:2,3.67:3" aria-label="A crop of Girl with a Pearl Earring is pinned, dragged over another window, zoomed and closed"></video>
+            <div class="chip" aria-hidden="true"><i><svg class="ico"><use href="#t-pin"/></svg></i><i><svg class="ico"><use href="#t-move"/></svg></i><i><svg class="ico"><use href="#t-zoom"/></svg></i><i><svg class="ico"><use href="#t-close"/></svg></i></div>
+          </div>
           <div class="feature-body"><h3>Pin to screen</h3>
             <p>Float a screenshot above everything else while you work. Drag it, scroll to zoom, copy it again later.</p></div>
         </article>
         <article class="feature">
-          <img src="media/features/shapes.webp" loading="lazy" alt="A rectangle, an ellipse, a line and an arrow drawn over The Starry Night">
+          <div class="media">
+            <video class="clip" src="media/features/shapes.mp4" poster="media/features/shapes-poster.webp" muted loop playsinline preload="none"
+                   data-timeline="0:0,1.73:1,3:2,4.27:3" aria-label="A rectangle, an ellipse, a line and an arrow drawn over The Starry Night"></video>
+            <div class="chip" aria-hidden="true"><i><svg class="ico"><use href="#t-rect"/></svg></i><i><svg class="ico"><use href="#t-ellipse"/></svg></i><i><svg class="ico"><use href="#t-line"/></svg></i><i><svg class="ico"><use href="#t-arrow"/></svg></i></div>
+          </div>
           <div class="feature-body"><h3>Shapes</h3>
             <p><kbd>R</kbd> rectangle, <kbd>O</kbd> ellipse, <kbd>L</kbd> line, <kbd>A</kbd> arrow. Hold <kbd>⇧</kbd> for perfect squares, circles and 45° lines.</p></div>
         </article>
         <article class="feature">
-          <img src="media/features/freehand.webp" loading="lazy" alt="A note's title is highlighted in yellow and its date circled with the pen">
+          <div class="media">
+            <video class="clip" src="media/features/freehand.mp4" poster="media/features/freehand-poster.webp" muted loop playsinline preload="none"
+                   data-timeline="0:1,2.47:0" aria-label="A note's title is highlighted in yellow and its date circled with the pen"></video>
+            <div class="chip" aria-hidden="true"><i><svg class="ico"><use href="#t-pen"/></svg></i><i><svg class="ico"><use href="#t-highlighter"/></svg></i></div>
+          </div>
           <div class="feature-body"><h3>Pen and highlighter</h3>
             <p><kbd>D</kbd> draws freehand. <kbd>H</kbd> highlights text without hiding it.</p></div>
         </article>
         <article class="feature">
-          <img src="media/features/text-steps.webp" loading="lazy" alt="Numbered steps 1, 2 and 3 placed on stars, then a white text label typed">
+          <div class="media">
+            <video class="clip" src="media/features/text-steps.mp4" poster="media/features/text-steps-poster.webp" muted loop playsinline preload="none"
+                   data-timeline="0:1,3:0" aria-label="Numbered steps 1, 2 and 3 placed on stars, then a white text label typed"></video>
+            <div class="chip" aria-hidden="true"><i><svg class="ico"><use href="#t-text"/></svg></i><i><svg class="ico"><use href="#t-step"/></svg></i></div>
+          </div>
           <div class="feature-body"><h3>Text and numbered steps</h3>
             <p><kbd>T</kbd> adds a label. <kbd>N</kbd> drops 1, 2, 3… to walk someone through. Double-click text to edit it.</p></div>
         </article>
         <article class="feature">
-          <img src="media/features/redact.webp" loading="lazy" alt="A face is pixelated with mosaic and a line of text is blurred">
+          <div class="media">
+            <video class="clip" src="media/features/redact.mp4" poster="media/features/redact-poster.webp" muted loop playsinline preload="none"
+                   data-timeline="0:0,1.93:1" aria-label="A face is pixelated with mosaic and a line of text is blurred"></video>
+            <div class="chip" aria-hidden="true"><i><svg class="ico"><use href="#t-mosaic"/></svg></i><i><svg class="ico"><use href="#t-blur"/></svg></i></div>
+          </div>
           <div class="feature-body"><h3>Mosaic and blur</h3>
             <p><kbd>M</kbd> pixelates and <kbd>B</kbd> blurs, so faces, names and anything private stay private.</p></div>
         </article>
         <article class="feature">
-          <img src="media/features/style.webp" loading="lazy" alt="A selected arrow turns blue, then yellow, then thicker, and a new ellipse uses the same style">
+          <div class="media">
+            <video class="clip" src="media/features/style.mp4" poster="media/features/style-poster.webp" muted loop playsinline preload="none"
+                   data-timeline="0:0,2.67:1,3.13:2,3.67:3" aria-label="A selected arrow turns blue, then yellow, then thicker, and a new ellipse uses the same style"></video>
+            <div class="chip" aria-hidden="true"><i><svg class="ico"><use href="#t-arrow"/></svg></i><i><svg class="ico"><use href="#t-blue"/></svg></i><i><svg class="ico"><use href="#t-yellow"/></svg></i><i><svg class="ico"><use href="#t-thicker"/></svg></i></div>
+          </div>
           <div class="feature-body"><h3>Colors and line widths</h3>
             <p><kbd>1</kbd>–<kbd>6</kbd> pick red, yellow, green, blue, black or white. <kbd>[</kbd> <kbd>]</kbd> make lines thinner or thicker. Select a mark first to restyle it.</p></div>
         </article>
         <article class="feature">
-          <img src="media/features/edit.webp" loading="lazy" alt="A text label is dragged under an arrow, an ellipse is deleted, then undo and redo bring it back">
+          <div class="media">
+            <video class="clip" src="media/features/edit.mp4" poster="media/features/edit-poster.webp" muted loop playsinline preload="none"
+                   data-timeline="0:0,2.87:1,3.47:2,4.13:3,4.67:2" aria-label="A text label is dragged under an arrow, an ellipse is deleted, then undo and redo bring it back"></video>
+            <div class="chip" aria-hidden="true"><i><svg class="ico"><use href="#t-move"/></svg></i><i><svg class="ico"><use href="#t-delete"/></svg></i><i><svg class="ico"><use href="#t-undo"/></svg></i><i><svg class="ico"><use href="#t-redo"/></svg></i></div>
+          </div>
           <div class="feature-body"><h3>Move, delete, undo</h3>
             <p>Drag any mark to move it. <kbd>Delete</kbd> removes it, <span class="combo"><kbd>⌘</kbd><kbd>Z</kbd></span> and <span class="combo"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>Z</kbd></span> undo and redo.</p></div>
         </article>
@@ -474,7 +554,7 @@
 
 <footer>
   <div class="wrap">
-    <span>QuickSnip 1.1.0 · Made by Yvorcer · Desk photo by <a href="https://unsplash.com/photos/macbook-pro-on-brown-wooden-desk-zJ4yDrGMlp4">Filip Baotić</a> on Unsplash · Paintings by Monet, Van Gogh and Vermeer (public domain)</span>
+    <span>QuickSnip 1.1.0 · Made by Yvorcer · Desk photo by <a href="https://unsplash.com/photos/nighttime-desk-setup-with-laptop-lamp-and-city-view-odyglVvZv18">Avtar Singh</a> on Unsplash · Paintings by Monet, Van Gogh and Vermeer (public domain)</span>
     <span><a href="https://github.com/Yvorcer/homebrew-tap">Homebrew tap</a> · <a href="https://github.com/Yvorcer/homebrew-tap/releases">Releases</a></span>
   </div>
 </footer>
@@ -522,6 +602,37 @@
     if (e.target.closest("input, textarea, [contenteditable]")) return;
     e.preventDefault();
     copyCommand("brew-cmd");
+  });
+
+  // Feature clips: play while on screen, and light up the chip tool the clip is using right now.
+  const clipObserver = "IntersectionObserver" in window && new IntersectionObserver(entries => {
+    for (const { target, isIntersecting } of entries) {
+      if (isIntersecting && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) target.play().catch(() => {});
+      else target.pause();
+    }
+  }, { threshold: 0.4 });
+  document.querySelectorAll("video.clip").forEach(video => {
+    const marks = video.dataset.timeline.split(",").map(pair => pair.split(":").map(Number));
+    const tools = video.parentElement.querySelectorAll(".chip i");
+    let shown = -1;
+    const sync = () => {
+      let active = marks[0][1];
+      for (const [time, index] of marks) if (video.currentTime >= time) active = index;
+      if (active !== shown) {
+        tools.forEach((tool, i) => tool.classList.toggle("on", i === active));
+        shown = active;
+      }
+    };
+    const follow = () => {
+      sync();
+      if (video.paused) return;
+      if (video.requestVideoFrameCallback) video.requestVideoFrameCallback(follow);
+      else requestAnimationFrame(follow);
+    };
+    video.addEventListener("play", follow);
+    video.addEventListener("seeked", sync);
+    sync();
+    if (clipObserver) clipObserver.observe(video); else video.autoplay = true;
   });
 
   const demo = document.getElementById("demo");
