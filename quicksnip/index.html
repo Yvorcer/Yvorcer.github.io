@@ -302,6 +302,7 @@
     <a class="brand" href="#top"><img src="media/icon.svg" alt="">QuickSnip</a>
     <nav aria-label="Sections">
       <a href="#features">Features</a>
+      <a href="#record">Record</a>
       <a href="#shortcuts">Shortcuts</a>
       <a href="#install">Install</a>
       <a href="#privacy">Privacy</a>
@@ -315,13 +316,13 @@
     <div class="hero-grid">
       <div class="hero-copy">
         <h1>Select. Press <span class="grad">C</span>.<br> It’s on your clipboard.</h1>
-        <p class="lede">QuickSnip is a fast, keyboard-first screenshot tool for macOS. Press <span class="combo"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>K</kbd></span>, pick an area or a window, mark it up if you want, and finish with one key.</p>
+        <p class="lede">QuickSnip is a fast, keyboard-first screenshot tool for macOS. Press <span class="combo"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>K</kbd></span>, pick an area or a window, mark it up if you want, and finish with one key. <span class="combo"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>L</kbd></span> records your screen instead.</p>
         <div class="install">
           <div class="cmd"><code id="brew-cmd">brew install --cask yvorcer/tap/quicksnip</code><button class="copy-btn" type="button" data-copy="brew-cmd">Copy</button></div>
           <div class="hint">Or press <kbd>C</kbd> on this page. No Homebrew? <a href="https://github.com/Yvorcer/homebrew-tap/releases/latest">Download the app</a></div>
         </div>
         <button class="watch" type="button" id="watch"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18"><circle cx="12" cy="12" r="11" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 8.2v7.6l6-3.8z" fill="currentColor"/></svg>Watch the demo with sound</button>
-        <p class="meta">Version 1.3.0 · macOS 14 or later · Apple Silicon and Intel · Free</p>
+        <p class="meta">Version 1.4.0 · macOS 14 or later · Apple Silicon and Intel · Free</p>
       </div>
       <div class="stage">
         <img class="desk" src="media/night-desk-1400.webp" srcset="media/night-desk-1400.webp 1400w, media/night-desk-2400.webp 2400w"
@@ -457,8 +458,23 @@
 
       <div class="extras">
         <p><strong>Works on every display.</strong> Capture on any connected screen, at that screen’s full resolution.</p>
-        <p><strong>Fits into macOS.</strong> Plays the familiar screenshot sound, saves where macOS screenshots go or a folder you pick, and can open at login. Its settings look like System Settings.</p>
+        <p><strong>Fits into macOS.</strong> Plays the familiar screenshot sound, saves where macOS screenshots go or a folder you pick, and can open at login. Its settings sit on glass, with Liquid Glass on macOS 26.</p>
       </div>
+    </div>
+  </section>
+
+  <section class="block" id="record">
+    <div class="wrap">
+      <p class="eyebrow">Screen recording</p>
+      <h2>Record your screen, then edit it in seconds.</h2>
+      <p class="section-lede">Press <span class="combo"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>L</kbd></span> and a record bar opens, with a key for everything. Stop, and a dark editor with glass controls trims, speeds up and exports. Needs macOS 15 Sequoia or later.</p>
+      <div class="keys">
+        <div class="key-card"><kbd>A</kbd><h3>Area, window or screen</h3><p>Draw an area like a screenshot. <kbd>W</kbd> records one window, <kbd>F</kbd> the full screen.</p></div>
+        <div class="key-card"><kbd>S</kbd><h3>Sound and mic</h3><p>The Mac’s sound, and <kbd>M</kbd> the microphone. <kbd>T</kbd> counts down 3-2-1 first.</p></div>
+        <div class="key-card"><kbd>G</kbd><h3>Faster or slower</h3><p>Speed parts up 2×, 4× or 8×, or slow them to 0.25× or 0.5×, each at its own speed.</p></div>
+        <div class="key-card"><kbd>K</kbd><h3>Clicks and keys</h3><p>Show your clicks (<kbd>P</kbd>) and shortcuts afterwards, not up front. Plain typing is never noted.</p></div>
+      </div>
+      <p class="note">A pulsing red frame shows what’s being recorded and stays out of the video. Press <kbd>⌘</kbd><kbd>⇧</kbd><kbd>L</kbd> again to stop. Trim, mute the sound or the mic, pick MP4 or GIF with its size shown, then <kbd>C</kbd> copies and <kbd>S</kbd> saves.</p>
     </div>
   </section>
 
@@ -505,6 +521,28 @@
           </table>
         </div>
         <div class="table">
+          <h3>Recording</h3>
+          <table>
+            <tr><td><span class="combo"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>L</kbd></span></td><td>Record bar, or stop recording</td></tr>
+            <tr><td><kbd>A</kbd> · <kbd>W</kbd> · <kbd>F</kbd></td><td>Area · one window · full screen</td></tr>
+            <tr><td><kbd>S</kbd> · <kbd>M</kbd></td><td>Mac’s sound · microphone</td></tr>
+            <tr><td><kbd>T</kbd></td><td>Count down 3-2-1</td></tr>
+            <tr><td><kbd>Return</kbd> · <kbd>R</kbd></td><td>Start recording</td></tr>
+            <tr><td><kbd>Esc</kbd> · right-click</td><td>Close the record bar</td></tr>
+          </table>
+        </div>
+        <div class="table">
+          <h3>Video editor</h3>
+          <table>
+            <tr><td><kbd>Space</kbd></td><td>Play and pause</td></tr>
+            <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>Step a frame (<kbd>⇧</kbd> for a second)</td></tr>
+            <tr><td><kbd>G</kbd> · click a part</td><td>2×, 4×, 8×, 0.25×, 0.5×</td></tr>
+            <tr><td><kbd>P</kbd> · <kbd>K</kbd></td><td>Show clicks · shortcuts</td></tr>
+            <tr><td><kbd>C</kbd> · <kbd>S</kbd></td><td>Copy · save</td></tr>
+            <tr><td><kbd>Delete</kbd></td><td>Remove a speed part, or the recording</td></tr>
+          </table>
+        </div>
+        <div class="table">
           <h3>Pins</h3>
           <table>
             <tr><td>Drag</td><td>Move</td></tr>
@@ -542,10 +580,10 @@
   <section class="block" id="privacy">
     <div class="wrap">
       <p class="eyebrow">Privacy</p>
-      <h2>Your screenshots never leave your Mac.</h2>
+      <h2>Your screenshots and recordings never leave your Mac.</h2>
       <div class="trust">
         <div><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l20 20"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M5 12.6a10 10 0 0 1 5.4-2.8"/><path d="M19 12.6a10 10 0 0 0-2.4-1.8"/><path d="M1.8 8.9a15 15 0 0 1 4.6-2.8"/><path d="M22.2 8.9a15 15 0 0 0-11-3.8"/><circle cx="12" cy="20" r=".6" fill="currentColor"/></svg><h3>No internet, at all</h3><p>QuickSnip has no network code. It doesn’t upload, track or phone home, and it can’t.</p></div>
-        <div><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V6a2 2 0 0 1 2-2h3M15 4h3a2 2 0 0 1 2 2v3M20 15v3a2 2 0 0 1-2 2h-3M9 20H6a2 2 0 0 1-2-2v-3"/><circle cx="12" cy="12" r="2.2"/></svg><h3>Screen Recording, for capturing only</h3><p>macOS requires that permission for any screenshot tool. QuickSnip only uses it to take the screenshots you ask for.</p></div>
+        <div><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V6a2 2 0 0 1 2-2h3M15 4h3a2 2 0 0 1 2 2v3M20 15v3a2 2 0 0 1-2 2h-3M9 20H6a2 2 0 0 1-2-2v-3"/><circle cx="12" cy="12" r="2.2"/></svg><h3>Screen Recording, for capturing only</h3><p>macOS requires that permission for any screenshot tool. QuickSnip only uses it to take the screenshots and recordings you ask for.</p></div>
         <div><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.3 1.7 2.8-.2.9 2.7 2.4 1.5-.9 2.7.9 2.7-2.4 1.5-.9 2.7-2.8-.2L12 19.3l-2.3-1.7-2.8.2-.9-2.7-2.4-1.5.9-2.7-.9-2.7 2.4-1.5.9-2.7 2.8.2z"/><path d="M9.2 11l1.9 1.9 3.7-3.8"/></svg><h3>Honest about signing</h3><p>QuickSnip isn’t notarized by Apple, which needs a paid developer account. That’s why macOS asks you to allow it the first time.</p></div>
       </div>
     </div>
@@ -554,7 +592,7 @@
 
 <footer>
   <div class="wrap">
-    <span>QuickSnip 1.3.0 · Made by Yvorcer · Desk photo by <a href="https://unsplash.com/photos/nighttime-desk-setup-with-laptop-lamp-and-city-view-odyglVvZv18">Avtar Singh</a> on Unsplash · Paintings by Monet, Van Gogh and Vermeer (public domain)</span>
+    <span>QuickSnip 1.4.0 · Made by Yvorcer · Desk photo by <a href="https://unsplash.com/photos/nighttime-desk-setup-with-laptop-lamp-and-city-view-odyglVvZv18">Avtar Singh</a> on Unsplash · Paintings by Monet, Van Gogh and Vermeer (public domain)</span>
     <span><a href="https://github.com/Yvorcer/homebrew-tap">Homebrew tap</a> · <a href="https://github.com/Yvorcer/homebrew-tap/releases">Releases</a></span>
   </div>
 </footer>
