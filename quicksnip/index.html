@@ -3,23 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>QuickSnip: screenshots for Mac, one key to copy</title>
-<meta name="description" content="QuickSnip is a fast, keyboard-first screenshot tool for macOS. Select an area, press C, and it's on your clipboard. Free.">
+<title>QuickSnip: screenshots and screen recordings for Mac</title>
+<meta name="description" content="QuickSnip is a fast, keyboard-first screenshot and screen recording tool for macOS. Select an area, press C, and it's on your clipboard. Or record it, trim it and copy an MP4 or GIF. Free.">
 <meta name="theme-color" content="#0B1020">
 <meta property="og:type" content="website">
-<meta property="og:title" content="QuickSnip: Select. Press C. It’s on your clipboard.">
-<meta property="og:description" content="A fast, keyboard-first screenshot tool for macOS. Capture, mark up and copy without reaching for a toolbar. Free.">
+<meta property="og:title" content="QuickSnip: screenshots and screen recordings, one key at a time">
+<meta property="og:description" content="A fast, keyboard-first screenshot and screen recording tool for macOS. Capture, mark up, record and trim without reaching for a toolbar. Free.">
 <meta property="og:url" content="https://yvorcer.github.io/quicksnip/">
 <meta property="og:image" content="https://yvorcer.github.io/quicksnip/media/og.png">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="media/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="media/apple-touch-icon.png">
 <style>
-  /* Layout: one dark desk. A centered hero, the demo framed by the icon's viewfinder corners,
-     then content sections on a single 1040px column. Key caps are the recurring motif. */
+  /* Layout: one dark desk, two tabs. Screenshots and Recording share one layout: a centered hero with the
+     laptop on the desk, a row of key cards, a grid of feature cards, then shortcuts. Install and Privacy sit
+     below both. Key caps are the recurring motif; each tab has its own accent. */
   :root {
     color-scheme: dark;
     --bg: #0B1020;
+    --bg-rgb: 11, 16, 32;
     --bg-raise: #111832;
     --surface: #151D38;
     --line: rgba(255, 255, 255, 0.08);
@@ -28,18 +30,47 @@
     --faint: #6E7A9C;
     --accent-a: #6CF0FF;
     --accent-b: #3D7BFF;
+    --accent-c: #4E8DFF;
+    --accent-top: #4FCBFF;
+    --accent-rgb: 108, 240, 255;
+    --accent-glow: rgba(61, 123, 255, 0.35);
     --cap-top: #232C4D;
     --cap-bottom: #1A2140;
     --cap-edge: #2F3A60;
     --cap-shadow: #060914;
+    --cap-text: #DCE3F5;
+    --toast-bg: rgba(28, 32, 51, 0.96);
     --ok: #34C759;
     --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
     --mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
     --radius: 14px;
     --column: 1040px;
   }
+  /* Recording: the whole page goes red-black, lit by the red of the record button. */
+  body[data-tab="record"] {
+    --bg: #130A0E;
+    --bg-rgb: 19, 10, 14;
+    --bg-raise: #1D1016;
+    --surface: #29151E;
+    --line: rgba(255, 150, 140, 0.1);
+    --text: #F8EAED;
+    --muted: #C9A5AE;
+    --faint: #8F6E78;
+    --cap-top: #3D1D28;
+    --cap-bottom: #2D151E;
+    --cap-edge: #55283A;
+    --cap-shadow: #090305;
+    --cap-text: #F5DDE3;
+    --toast-bg: rgba(45, 22, 31, 0.96);
+    --accent-a: #FF9A8C;
+    --accent-b: #FF453A;
+    --accent-c: #FF5E57;
+    --accent-top: #FF8A6E;
+    --accent-rgb: 255, 154, 140;
+    --accent-glow: rgba(255, 69, 58, 0.32);
+  }
 
-  * { box-sizing: border-box; }
+  *, ::before, ::after { box-sizing: border-box; }
   html { scroll-behavior: smooth; scroll-padding-top: 72px; }
   body {
     margin: 0;
@@ -47,11 +78,14 @@
     color: var(--text);
     font: 17px/1.6 var(--font);
     -webkit-font-smoothing: antialiased;
+    transition: background-color 0.4s;
   }
+  ::selection { background: rgba(var(--accent-rgb), 0.3); }
   img, video { max-width: 100%; display: block; }
   a { color: var(--accent-a); text-decoration: none; }
   a:hover { text-decoration: underline; }
   :focus-visible { outline: 2px solid var(--accent-a); outline-offset: 3px; border-radius: 6px; }
+  [hidden] { display: none !important; }
 
   .wrap { max-width: var(--column); margin-inline: auto; padding-inline: 20px; }
 
@@ -61,32 +95,42 @@
     border-radius: 6px; border: 1px solid var(--cap-edge);
     background: linear-gradient(var(--cap-top), var(--cap-bottom));
     box-shadow: 0 2px 0 var(--cap-shadow);
-    font: 600 0.8em/1 var(--font); color: #DCE3F5;
+    font: 600 0.8em/1 var(--font); color: var(--cap-text);
     vertical-align: 0.08em; white-space: nowrap;
   }
   kbd + kbd { margin-left: 3px; }
   .combo { white-space: nowrap; }
 
-  /* Navigation */
+  /* Navigation, with the two tabs */
   .nav {
     position: sticky; top: 0; z-index: 10;
-    background: rgba(11, 16, 32, 0.78);
+    background: rgba(var(--bg-rgb), 0.78);
     backdrop-filter: saturate(160%) blur(16px); -webkit-backdrop-filter: saturate(160%) blur(16px);
     border-bottom: 1px solid var(--line);
     padding-top: env(safe-area-inset-top, 0px);
   }
-  .nav .wrap { display: flex; align-items: center; gap: 24px; height: 60px; }
+  .nav .wrap { display: flex; align-items: center; gap: 22px; height: 60px; }
   .brand { display: flex; align-items: center; gap: 10px; color: var(--text); font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
   .brand:hover { text-decoration: none; }
   .brand img { width: 30px; height: 30px; }
+  .tabs { display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line); }
+  .tabs button {
+    display: inline-flex; align-items: center; gap: 7px; padding: 7px 14px 7px 11px; border: 0; border-radius: 999px; cursor: pointer;
+    background: none; color: var(--muted); font: 600 14px/1 var(--font); transition: background 0.15s, color 0.15s;
+  }
+  .tabs button svg { width: 17px; height: 17px; flex: none; }
+  .tabs button:hover { color: var(--text); }
+  .tabs button[aria-selected="true"] { background: var(--surface); color: var(--text); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 4px 14px rgba(0, 0, 0, 0.3); }
+  #tab-shot svg { color: #6CF0FF; }
+  #tab-record svg { color: #FF6B5E; }
   .nav nav { display: flex; gap: 22px; margin-left: auto; }
   .nav nav a { color: var(--muted); font-size: 15px; }
   .nav nav a:hover { color: var(--text); text-decoration: none; }
   .button {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 9px 16px; border-radius: 10px; border: 0; cursor: pointer;
-    background: linear-gradient(#4FCBFF, var(--accent-b)); color: #fff;
-    font: 600 15px/1 var(--font); box-shadow: 0 6px 20px rgba(61, 123, 255, 0.35);
+    background: linear-gradient(var(--accent-top), var(--accent-b)); color: #fff;
+    font: 600 15px/1 var(--font); box-shadow: 0 6px 20px var(--accent-glow);
   }
   .button:hover { text-decoration: none; filter: brightness(1.08); }
 
@@ -102,20 +146,20 @@
     font-size: clamp(40px, 4.2vw, 58px); line-height: 1.04; font-weight: 800; letter-spacing: -0.04em; word-spacing: 0.06em;
     text-wrap: balance;
   }
-  .grad { background: linear-gradient(var(--accent-a), #4E8DFF); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .grad { background: linear-gradient(var(--accent-a), var(--accent-c)); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .lede { margin: 22px 0 0; max-width: 31em; color: var(--muted); font-size: clamp(17px, 1.6vw, 19px); }
   .install { margin-top: 32px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
   .cmd {
     display: flex; align-items: center; gap: 4px; max-width: 100%;
     background: var(--surface); border: 1px solid var(--cap-edge); border-radius: 12px; padding: 6px 6px 6px 18px;
   }
-  .cmd code { font: 15px/1.4 var(--mono); color: #DCE3F5; white-space: nowrap; overflow-x: auto; min-width: 0; }
+  .cmd code { font: 15px/1.4 var(--mono); color: var(--cap-text); white-space: nowrap; overflow-x: auto; min-width: 0; }
   .cmd code::before { content: "$ "; color: var(--faint); }
   .copy-btn {
     flex: none; border: 0; border-radius: 8px; padding: 9px 14px; cursor: pointer;
-    background: rgba(108, 240, 255, 0.12); color: var(--accent-a); font: 600 14px/1 var(--font);
+    background: rgba(var(--accent-rgb), 0.12); color: var(--accent-a); font: 600 14px/1 var(--font);
   }
-  .copy-btn:hover { background: rgba(108, 240, 255, 0.2); }
+  .copy-btn:hover { background: rgba(var(--accent-rgb), 0.2); }
   .hint { color: var(--faint); font-size: 14px; }
   .hint a { color: var(--muted); }
   .meta { margin-top: 22px; color: var(--faint); font-size: 14px; letter-spacing: 0.01em; }
@@ -125,22 +169,22 @@
     padding: 10px 16px 10px 12px; border-radius: 10px; border: 1px solid var(--cap-edge);
     background: transparent; color: var(--text); font: 600 15px/1 var(--font);
   }
-  .watch:hover { background: var(--surface); }
+  .watch:hover { background: var(--surface); text-decoration: none; }
 
   /* Wider than its column: the photo's dark left side runs under the copy and fades into the page. */
   .stage { position: relative; width: 185%; margin-left: -33%; }
   .desk { width: 100%; height: auto; }
   /* The laptop's display: a 16-inch MacBook Pro shot straight on, measured from its lid. */
   .screen { position: absolute; z-index: 2; left: 28.874%; top: 28.210%; width: 38.502%; height: 36.083%; overflow: hidden; background: #000; border-radius: 0.3%; }
-  .screen video { width: 100%; height: 100%; object-fit: cover; }
-  .stage::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: rgba(11, 16, 40, 0.12); }
+  .screen > video { width: 100%; height: 100%; object-fit: cover; }
+  .stage::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: rgba(var(--bg-rgb), 0.12); }
   .stage::after {
     content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none;
     background:
-      linear-gradient(to right, var(--bg) 0%, rgba(11, 16, 32, 0) 34%),
-      linear-gradient(to left, var(--bg) 0%, rgba(11, 16, 32, 0) 12%),
-      linear-gradient(to bottom, var(--bg) 0%, rgba(11, 16, 32, 0) 30%),
-      linear-gradient(to top, var(--bg) 0%, rgba(11, 16, 32, 0) 26%);
+      linear-gradient(to right, var(--bg) 0%, rgba(var(--bg-rgb), 0) 34%),
+      linear-gradient(to left, var(--bg) 0%, rgba(var(--bg-rgb), 0) 12%),
+      linear-gradient(to bottom, var(--bg) 0%, rgba(var(--bg-rgb), 0) 30%),
+      linear-gradient(to top, var(--bg) 0%, rgba(var(--bg-rgb), 0) 26%);
   }
   .hero .facts { margin-top: 8px; }
 
@@ -151,7 +195,7 @@
   .section-lede { color: var(--muted); max-width: 38em; margin: 14px 0 0; }
   h3 { margin: 0 0 6px; font-size: 19px; letter-spacing: -0.01em; }
 
-  /* One key to finish */
+  /* One key each */
   .keys { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-top: 36px; }
   .key-card { background: var(--bg-raise); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
   .key-card > kbd { font-size: 26px; min-width: 2.1em; height: 2.1em; border-radius: 12px; box-shadow: 0 4px 0 var(--cap-shadow); margin-bottom: 18px; }
@@ -165,15 +209,18 @@
     background: var(--bg-raise); border: 1px solid var(--line); border-radius: 18px;
     transition: border-color 0.2s;
   }
-  .feature:hover { border-color: rgba(108, 240, 255, 0.28); }
+  .feature:hover { border-color: rgba(var(--accent-rgb), 0.28); }
   .feature .media { position: relative; border-bottom: 1px solid var(--line); }
-  .feature video { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; background: var(--surface); }
+  .feature video.clip { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; background: var(--surface); }
   /* A frosted slice of QuickSnip's toolbar; the tool the clip is using lights up. */
   .chip {
-    position: absolute; top: 12px; right: 12px; display: flex; gap: 2px; padding: 5px; border-radius: 11px;
+    position: absolute; top: 12px; right: 12px; z-index: 7; display: flex; gap: 2px; padding: 5px; border-radius: 11px;
     background: rgba(20, 24, 40, 0.72); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
   }
+  /* Out of the way where a scene's action is in the top right. */
+  .chip.left { right: auto; left: 12px; }
+  .chip.low { top: auto; bottom: 12px; }
   .chip i { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 7px; color: rgba(255, 255, 255, 0.72); transition: background 0.18s, color 0.18s; }
   .chip i.on { background: rgba(255, 255, 255, 0.2); color: #fff; }
   .chip .ico { width: 20px; height: 20px; }
@@ -203,17 +250,17 @@
   .steps li { counter-increment: step; display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 14px; align-items: start; }
   .steps li::before {
     content: counter(step); display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
-    background: rgba(108, 240, 255, 0.12); color: var(--accent-a); font-weight: 700; font-size: 15px;
+    background: rgba(var(--accent-rgb), 0.12); color: var(--accent-a); font-weight: 700; font-size: 15px;
   }
   .steps p { margin: 4px 0 0; }
   .steps .cmd { margin-top: 10px; width: fit-content; }
-  .alt { margin-top: 40px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+  .alt { margin-top: 40px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
   .alt > div { background: var(--bg-raise); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px; }
   .alt p { margin: 0; color: var(--muted); font-size: 16px; }
-  code.inline { font: 0.88em var(--mono); background: var(--surface); padding: 2px 6px; border-radius: 5px; color: #DCE3F5; }
+  code.inline { font: 0.88em var(--mono); background: var(--surface); padding: 2px 6px; border-radius: 5px; color: var(--cap-text); }
 
   /* Privacy */
-  .trust { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin-top: 36px; }
+  .trust { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 36px; }
   .trust > div { background: var(--bg-raise); border: 1px solid var(--line); border-radius: 18px; padding: 24px; }
   .trust .icon { width: 28px; height: 28px; margin-bottom: 14px; }
   .trust p { margin: 0; color: var(--muted); font-size: 16px; }
@@ -226,16 +273,213 @@
   .toast {
     position: fixed; left: 50%; bottom: calc(28px + env(safe-area-inset-bottom, 0px)); z-index: 20;
     display: flex; align-items: center; gap: 10px; padding: 11px 18px 11px 12px; border-radius: 999px;
-    background: rgba(28, 32, 51, 0.96); border: 1px solid var(--line); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    background: var(--toast-bg); border: 1px solid var(--line); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
     font-weight: 600; font-size: 15px;
     transform: translate(-50%, 12px); opacity: 0; pointer-events: none; transition: opacity 0.2s, transform 0.2s;
   }
   .toast.show { opacity: 1; transform: translate(-50%, 0); }
   .toast svg { flex: none; }
 
+  /* The Recording tab's own red: the laptop's screen casts red light on the desk, a red line under the bar,
+     a recording dot on every section label, warm key caps and the active tool lit red. */
+  body[data-tab="record"] .nav { border-bottom-color: rgba(255, 69, 58, 0.28); }
+  body[data-tab="record"] #tab-record[aria-selected="true"] { background: rgba(255, 69, 58, 0.16); box-shadow: inset 0 0 0 1px rgba(255, 69, 58, 0.35), 0 4px 14px rgba(0, 0, 0, 0.3); }
+  #panel-record .hero::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse 40% 50% at 12% 30%, rgba(255, 59, 48, 0.08), transparent 70%);
+  }
+  #panel-record .hero-grid, #panel-record .hero .wrap { position: relative; }
+  /* Centered on the screen (28.9% + 38.5% / 2 across, 28.2% + 36.1% / 2 down), over the photo. */
+  #panel-record .stage::before {
+    mix-blend-mode: screen;
+    background: radial-gradient(ellipse 34% 40% at 48.1% 50%, rgba(255, 48, 38, 0.3), rgba(255, 48, 38, 0.1) 55%, transparent 80%);
+  }
+  body[data-tab="record"] .eyebrow { display: flex; align-items: center; gap: 9px; }
+  body[data-tab="record"] .eyebrow::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 50%; background: #FF453A; box-shadow: 0 0 10px rgba(255, 69, 58, 0.8); animation: rec-blink 2.2s ease-in-out infinite; }
+  @keyframes rec-blink { 50% { opacity: 0.3; } }
+  #panel-record .key-card > kbd { box-shadow: 0 4px 0 var(--cap-shadow), 0 0 26px rgba(255, 69, 58, 0.2); }
+  #panel-record .chip i.on { background: rgba(255, 69, 58, 0.42); }
+  #panel-record .feature .media { border-bottom-color: rgba(255, 69, 58, 0.22); }
+  body[data-tab="record"] section.block { border-top-color: rgba(255, 150, 140, 0.1); }
+
+  /* Recording scenes: QuickSnip's recording UI rebuilt over a frame of the demo. Each scene is a 1440 × 900
+     point screen (or an 800 × 500 editor) scaled into its box, and its script moves the pointer, presses
+     keys and plays the demo footage. Sizes and colors follow the app's own code. */
+  .scene { position: relative; overflow: hidden; background: #0E1222; container-type: inline-size; isolation: isolate; user-select: none; -webkit-user-select: none; }
+  .feature .scene { aspect-ratio: 16 / 10; }
+  .screen .scene { position: absolute; inset: 0; }
+  .world { position: absolute; left: 0; top: 0; overflow: hidden; transform-origin: 0 0; color: #fff; font-family: var(--font); line-height: 1.2; }
+  .world.glide { transition: transform 1.1s cubic-bezier(0.45, 0, 0.2, 1); }
+  .world .wall, .world .foot { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; max-width: none; object-fit: cover; }
+  .world .foot { opacity: 0; transition: opacity 0.3s; }
+  .world .foot.on { opacity: 1; }
+  .world svg { display: block; }
+
+  .ov { position: absolute; inset: 0; overflow: hidden; opacity: 0; transition: opacity 0.25s; }
+  .ov.on { opacity: 1; }
+  .hole { position: absolute; box-shadow: 0 0 0 3000px rgba(0, 0, 0, 0.3); }
+  .hole.win { transition: left 0.22s, top 0.22s, width 0.22s, height 0.22s; }
+  .hole.sel { box-shadow: 0 0 0 3000px rgba(0, 0, 0, 0.4); outline: 1px solid #fff; }
+  .hole.win::before { content: ""; position: absolute; inset: 0; border: 2px solid #FF453A; }
+  .hole .tag, .hole .size, .hole .hd { display: none; }
+  .hole.win .tag { display: block; position: absolute; left: 50%; top: 14px; transform: translateX(-50%); padding: 5px 12px; border-radius: 999px; background: #FF453A; font: 600 13px/1.2 var(--font); white-space: nowrap; }
+  .hole.sel .size { display: block; position: absolute; left: 0; bottom: calc(100% + 6px); padding: 3px 6px; border-radius: 4px; background: rgba(0, 0, 0, 0.7); font: 500 11px/1.2 var(--mono); white-space: nowrap; }
+  .hole.sel.full .size { bottom: auto; top: 6px; left: 6px; }
+  .hole.handles .hd { display: block; position: absolute; width: 7px; height: 7px; margin: -3.5px; border-radius: 50%; background: #fff; border: 1px solid #0A84FF; }
+  .hd.nw { left: 0; top: 0; } .hd.n { left: 50%; top: 0; } .hd.ne { left: 100%; top: 0; } .hd.e { left: 100%; top: 50%; }
+  .hd.se { left: 100%; top: 100%; } .hd.s { left: 50%; top: 100%; } .hd.sw { left: 0; top: 100%; } .hd.w { left: 0; top: 50%; }
+
+  .rbar {
+    position: absolute; left: 571px; top: 784px; width: 298px; height: 36px; display: flex; align-items: center; gap: 2px; padding: 4px 6px;
+    border-radius: 9px; background: rgba(38, 38, 42, 0.82); backdrop-filter: blur(18px) saturate(1.6); -webkit-backdrop-filter: blur(18px) saturate(1.6);
+    box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.22), 0 10px 30px rgba(0, 0, 0, 0.4);
+    opacity: 0; transform: translateY(6px); transition: opacity 0.25s, transform 0.25s;
+  }
+  .rbar.on { opacity: 1; transform: none; }
+  .rbar i { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 6px; color: rgba(255, 255, 255, 0.85); transition: background 0.12s; }
+  .rbar i svg { width: 17px; height: 17px; }
+  .rbar i.on { background: rgba(255, 255, 255, 0.2); color: #fff; }
+  .rbar i.press { background: rgba(255, 255, 255, 0.36); }
+  .rbar i.rec { color: #FF453A; }
+  .rbar .sep { flex: none; width: 1px; height: 18px; margin: 0 3px; background: rgba(255, 255, 255, 0.2); }
+
+  .rframe { position: absolute; border: 4px solid #FF453A; border-radius: 8px; opacity: 0; transition: opacity 0.2s; }
+  .rframe.full { border-radius: 0; }
+  .rframe.on { opacity: 1; animation: rec-pulse 1.1s ease-in-out infinite alternate; }
+  @keyframes rec-pulse { to { opacity: 0.45; } }
+
+  /* The menu bar icon becomes a red dot and the time; the patch hides the icon under it. */
+  .status {
+    position: absolute; left: 1074px; top: 0; width: 64px; height: 24px; display: none; align-items: center; justify-content: flex-end; gap: 4px; padding-right: 4px;
+    background: url(media/record/desktop.webp) -1000px 0 / 1440px 900px no-repeat; font: 500 13px/1 var(--font); font-variant-numeric: tabular-nums;
+  }
+  .status.on { display: flex; }
+  .status b { color: #FF453A; font-size: 11px; font-weight: 800; }
+  .smenu {
+    position: absolute; left: 1074px; top: 25px; width: 214px; padding: 5px; border-radius: 9px; font: 13px/1.2 var(--font);
+    background: rgba(44, 44, 48, 0.9); backdrop-filter: blur(24px) saturate(1.6); -webkit-backdrop-filter: blur(24px) saturate(1.6);
+    box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.2), 0 12px 32px rgba(0, 0, 0, 0.45); opacity: 0; transition: opacity 0.15s;
+  }
+  .smenu.on { opacity: 1; }
+  .smenu div { display: flex; justify-content: space-between; padding: 4px 10px; border-radius: 5px; }
+  .smenu div.hi { background: #0A84FF; }
+  .smenu small { color: rgba(255, 255, 255, 0.55); font-size: 13px; }
+  .smenu hr { border: 0; height: 1px; margin: 5px 10px; background: rgba(255, 255, 255, 0.14); }
+
+  /* The face: circle or square, a white border, soft edges, as in Settings → Recording. */
+  /* Nine frames side by side: a glance and a blink, then the last frame, where it rests. The script steps each
+     face through them on its own random rhythm. */
+  .look .face { position: absolute; inset: 0; background: #000 url(media/record/face-frames.webp) 100% 0 / 900% 100% no-repeat; }
+  .look.circle .face, .look.circle::after { border-radius: 50%; }
+  .look.square .face, .look.square::after { border-radius: 12%; }
+  .look.ring::after { content: ""; position: absolute; inset: 0; border: var(--ring, 3px) solid rgba(255, 255, 255, 0.92); }
+  .look:not(.soft) { filter: drop-shadow(0 5px 14px rgba(0, 0, 0, 0.45)); }
+  .look.soft.circle .face {
+    -webkit-mask: radial-gradient(closest-side, #000 55%, rgba(0, 0, 0, 0.84) 64%, rgba(0, 0, 0, 0.5) 77.5%, rgba(0, 0, 0, 0.16) 91%, transparent);
+    mask: radial-gradient(closest-side, #000 55%, rgba(0, 0, 0, 0.84) 64%, rgba(0, 0, 0, 0.5) 77.5%, rgba(0, 0, 0, 0.16) 91%, transparent);
+  }
+  .look.soft.square .face {
+    --fade: transparent, rgba(0, 0, 0, 0.16) 4%, rgba(0, 0, 0, 0.5) 11%, rgba(0, 0, 0, 0.84) 18%, #000 22.5%, #000 77.5%, rgba(0, 0, 0, 0.84) 82%, rgba(0, 0, 0, 0.5) 89%, rgba(0, 0, 0, 0.16) 96%, transparent;
+    -webkit-mask: linear-gradient(90deg, var(--fade)), linear-gradient(var(--fade)); -webkit-mask-composite: source-in;
+    mask: linear-gradient(90deg, var(--fade)), linear-gradient(var(--fade)); mask-composite: intersect;
+  }
+  .bub { position: absolute; opacity: 0; transform: scale(0.85); transition: left 0.38s cubic-bezier(0.3, 0.8, 0.25, 1), top 0.38s cubic-bezier(0.3, 0.8, 0.25, 1), opacity 0.3s, transform 0.3s; }
+  .bub.on { opacity: 1; transform: none; }
+  .bub.still, .bub.drag { transition: opacity 0.3s, transform 0.3s; }
+  .bub .face { transform: scaleX(-1); }   /* mirrored on screen, so you see yourself */
+
+  .count {
+    position: absolute; width: 132px; height: 132px; display: grid; place-items: center; border-radius: 28px;
+    background: rgba(38, 38, 42, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    font: 600 72px/1 var(--font); font-variant-numeric: tabular-nums; opacity: 0; transform: scale(0.9); transition: opacity 0.2s, transform 0.2s;
+  }
+  .count.on { opacity: 1; transform: none; }
+
+  .cur { position: absolute; left: -2px; top: -2px; z-index: 5; width: 17px; height: 24px; display: none; }
+  .cur.on { display: block; }
+  .cur svg { width: 100%; height: 100%; transform-origin: 2px 2px; transition: transform 0.1s; filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.4)); }
+  .cur.down svg { transform: scale(0.86); }
+
+  /* Captions on the laptop, like the screenshot demo's, but at the top: the record bar and the timeline are at the bottom. */
+  .cap {
+    position: absolute; left: 50%; top: 5%; z-index: 6; display: flex; align-items: center; gap: 0.3em;
+    padding: 0.42em 0.95em 0.42em 0.48em; border-radius: 999px; background: rgba(24, 24, 28, 0.84);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    color: #fff; font: 600 max(8px, 1.7cqw)/1 var(--font); white-space: nowrap;
+    opacity: 0; transform: translate(-50%, -6px); transition: opacity 0.25s, transform 0.25s;
+  }
+  .cap.on { opacity: 1; transform: translate(-50%, 0); }
+  .cap b { display: grid; place-items: center; min-width: 1.6em; height: 1.6em; padding: 0 0.35em; border-radius: 0.35em; background: #F2F2F5; color: #1C1C1E; font-size: 0.82em; }
+  .cap span { margin-left: 0.3em; }
+  .cap span:first-child { margin-left: 0.5em; }
+
+  /* The video editor: a glow from the video, the video at its own shape, glass controls. */
+  .ed { position: absolute; left: 0; top: 0; overflow: hidden; background: #121212; }
+  .ed-glow { position: absolute; inset: -80px; background: url(media/record/glow.webp) center / cover; filter: blur(48px) saturate(1.4) brightness(0.92); opacity: 0.55; }
+  .ed-top { position: absolute; top: 12px; right: 18px; height: 32px; display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+  .ed-status { font: 500 12px/1 var(--font); color: rgba(255, 255, 255, 0.7); }
+  .ed-size { margin-right: 4px; font: 500 12px/1 var(--mono); color: rgba(255, 255, 255, 0.6); }
+  .spin { display: none; width: 14px; height: 14px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.25); border-top-color: rgba(255, 255, 255, 0.9); animation: spin 0.8s linear infinite; }
+  .spin.on { display: block; }
+  @keyframes spin { to { transform: rotate(1turn); } }
+  .seg { display: flex; padding: 2px; border-radius: 999px; background: rgba(255, 255, 255, 0.1); box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.12); }
+  .seg b { padding: 5px 13px; border-radius: 999px; font: 500 13px/1 var(--font); color: rgba(255, 255, 255, 0.75); }
+  .seg b.on { background: rgba(255, 255, 255, 0.26); color: #fff; }
+  .gbtn { padding: 8px 16px; border-radius: 999px; font: 500 13px/1 var(--font); background: rgba(255, 255, 255, 0.12); box-shadow: inset 0 0 0 0.5px rgba(255, 255, 255, 0.22); }
+  .gbtn.pri { background: #0A84FF; box-shadow: none; }
+  .ed .press { filter: brightness(1.4); transform: scale(0.95); }
+  .gbtn, .seg b, .echip, .ed-row .play { transition: filter 0.12s, transform 0.12s, background 0.15s; }
+  .ed-vid { position: absolute; overflow: hidden; border-radius: 14px; background: #000; box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55); }
+  .ed-vid .evid { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .ed-face { position: absolute; transition: left 0.4s cubic-bezier(0.3, 0.8, 0.25, 1), top 0.4s cubic-bezier(0.3, 0.8, 0.25, 1), opacity 0.25s; }
+  .ed-face.off { opacity: 0; }
+  .ed-face.still { transition: opacity 0.25s; }
+  .ed-ghost, .ed-float { position: absolute; display: none; border-radius: 50%; }
+  .ed-ghost { border: 2px dashed rgba(255, 255, 255, 0.7); }
+  .ed-float { background: rgba(255, 255, 255, 0.18); border: 3px solid #fff; }
+  .ed-ghost.on, .ed-float.on { display: block; }
+  .ripple { position: absolute; left: 0; top: 0; display: none; border-radius: 50%; border: 3px solid #FFD60A; background: rgba(255, 214, 10, 0.28); }
+  .ed-keys { position: absolute; left: 50%; display: none; align-items: center; transform: translateX(-50%); white-space: pre; font-weight: 600; background: rgba(18, 18, 20, 0.92); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18); }
+  .ed-panel {
+    position: absolute; left: 24px; right: 24px; bottom: 20px; height: 166px; padding: 16px 20px 14px; border-radius: 26px;
+    background: rgba(52, 52, 58, 0.42); backdrop-filter: blur(26px) saturate(1.7); -webkit-backdrop-filter: blur(26px) saturate(1.7);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+  }
+  .ed-row { display: flex; align-items: center; gap: 10px; height: 40px; }
+  .ed-row .play { flex: none; display: grid; place-items: center; width: 40px; height: 40px; margin-right: 4px; border-radius: 50%; background: #F5F5F5; color: #121212; }
+  .ed-row .play svg { width: 16px; height: 16px; }
+  .ed-row .time { font: 500 14px/1 var(--mono); color: rgba(255, 255, 255, 0.92); }
+  .ed-row .grow { flex: 1; }
+  .echip { display: inline-flex; align-items: center; gap: 5px; height: 30px; padding: 0 12px; border-radius: 15px; font: 600 13px/1 var(--font); white-space: nowrap; background: rgba(255, 255, 255, 0.08); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14); }
+  .echip svg { width: 14px; height: 14px; color: rgba(255, 255, 255, 0.85); }
+  .echip small { margin-left: 3px; font: 500 12px/1 var(--font); color: rgba(255, 255, 255, 0.5); }
+  .echip.on { background: color-mix(in srgb, var(--tint) 24%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tint) 55%, transparent); }
+  .echip.on svg { color: var(--tint); }
+  .tl { position: relative; height: 84px; margin-top: 12px; }
+  .strip { position: absolute; left: 12px; right: 12px; top: 4px; height: 48px; overflow: hidden; border-radius: 6px; background: #262626; }
+  .strip i { position: absolute; top: 0; width: 76.8px; height: 48px; background: url(media/record/thumbs.webp) 0 0 / 1382.4px 48px no-repeat; }
+  .strip .dim { position: absolute; top: 0; bottom: 0; background: rgba(0, 0, 0, 0.6); }
+  .kept { position: absolute; top: 2px; height: 52px; border-block: 3px solid #FFD60A; }
+  .handle { position: absolute; top: 2px; width: 12px; height: 52px; border-radius: 4px; background: #FFD60A; }
+  .handle::after { content: ""; position: absolute; left: 5px; top: 19px; width: 2px; height: 14px; background: rgba(0, 0, 0, 0.55); }
+  .lane { position: absolute; left: 12px; right: 12px; bottom: 0; height: 22px; border-radius: 5px; background: rgba(128, 128, 128, 0.12); }
+  .lane .hint { position: absolute; inset: 0; display: grid; place-items: center; font: 11px/1 var(--font); color: rgba(255, 255, 255, 0.3); }
+  .part { position: absolute; top: 1px; bottom: 1px; display: grid; place-items: center; overflow: hidden; border-radius: 5px; background: rgba(255, 159, 10, 0.7); font: 600 11px/1 var(--font); }
+  .part.slow { background: rgba(48, 209, 88, 0.7); }
+  .part.sel { background: #FF9F0A; box-shadow: inset 0 0 0 1.5px #fff; }
+  .part.slow.sel { background: #30D158; }
+  .head { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: #fff; }
+  .edwin { position: absolute; overflow: hidden; border-radius: 12px; box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.2), 0 30px 80px rgba(0, 0, 0, 0.6); opacity: 0; transform: scale(0.94); transition: opacity 0.35s, transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+  .edwin.on { opacity: 1; transform: none; }
+  .edwin-in { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; transform-origin: 0 0; }
+  .lights { position: absolute; left: 18px; top: 16px; z-index: 2; display: flex; gap: 8px; }
+  .lights i { width: 12px; height: 12px; border-radius: 50%; background: #FF5F57; }
+  .lights i:nth-child(2) { background: #FEBC2E; }
+  .lights i:nth-child(3) { background: #28C840; }
+
   @media (max-width: 860px) {
     .keys { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .trust { grid-template-columns: minmax(0, 1fr); }
+    .trust, .alt { grid-template-columns: minmax(0, 1fr); }
   }
   @media (min-width: 901px) {
     .hero h1 { white-space: nowrap; }
@@ -249,12 +493,20 @@
   @media (max-width: 600px) {
     .stage { width: 160%; margin-left: -27%; }
   }
-  @media (max-width: 700px) {
+  @media (max-width: 960px) {
     .nav nav { display: none; }
     .nav .button { margin-left: auto; }
-    .features, .tables, .alt, .extras { grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (max-width: 700px) {
+    .features, .tables, .extras { grid-template-columns: minmax(0, 1fr); }
     section.block { padding-block: 56px; }
     .cmd code { font-size: 13px; }
+  }
+  @media (max-width: 520px) {
+    .nav .wrap { gap: 14px; }
+    .brand span, .nav .button { display: none; }
+    .tabs { margin-left: auto; }
+    .tabs button { padding: 7px 12px 7px 10px; }
   }
   @media (max-width: 420px) {
     .keys { grid-template-columns: minmax(0, 1fr); }
@@ -262,10 +514,11 @@
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
     .toast { transition: none; }
+    .rframe.on, body[data-tab="record"] .eyebrow::before { animation: none; }
   }
 </style>
 </head>
-<body>
+<body data-tab="shot">
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <symbol id="t-window" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 9.5h18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="7.3" r=".8" fill="currentColor"/><circle cx="8.6" cy="7.3" r=".8" fill="currentColor"/></symbol>
@@ -296,14 +549,50 @@
   <symbol id="t-delete" viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.8h4V7M7 7l1 12.5h8L17 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="t-undo" viewBox="0 0 24 24"><path d="M9 5L4 10l5 5M4 10h11a5 5 0 0 1 0 10h-2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="t-redo" viewBox="0 0 24 24"><path d="M15 5l5 5-5 5M20 10H9a5 5 0 0 0 0 10h2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <!-- Recording -->
+  <symbol id="t-rec" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4.4" fill="currentColor"/></symbol>
+  <symbol id="t-pause" viewBox="0 0 24 24"><path d="M9 6.5v11M15 6.5v11" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/></symbol>
+  <symbol id="t-stop" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="2.2" fill="currentColor"/></symbol>
+  <symbol id="t-cam" viewBox="0 0 24 24"><rect x="3" y="6.5" width="12.5" height="11" rx="2.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M15.5 10.6l5-2.9v8.6l-5-2.9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+  <symbol id="t-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="t-square" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="t-ring" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.2" fill="none" stroke="currentColor" stroke-width="3.4"/></symbol>
+  <symbol id="t-soft" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><circle cx="12" cy="12" r="6.6" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".55"/><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.4" opacity=".25"/></symbol>
+  <symbol id="t-speaker" viewBox="0 0 24 24"><path d="M3.5 9.5h3.2L11 5.8v12.4l-4.3-3.7H3.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M14.8 9.2a4 4 0 0 1 0 5.6M17.4 6.6a7.6 7.6 0 0 1 0 10.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="t-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5.8 11a6.2 6.2 0 0 0 12.4 0M12 17.2v3.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="t-timer" viewBox="0 0 24 24"><circle cx="12" cy="13.2" r="7.3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 13.2V9.4M10 3.5h4M18.2 6.6l-1.3 1.3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="t-trim" viewBox="0 0 24 24"><path d="M9 4.5H5.5v15H9M15 4.5h3.5v15H15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 9v6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" opacity=".5"/></symbol>
+  <symbol id="t-fast" viewBox="0 0 24 24"><text x="12" y="16.2" text-anchor="middle" font-size="11.5" font-weight="700" fill="currentColor">4×</text></symbol>
+  <symbol id="t-slow" viewBox="0 0 24 24"><text x="12" y="16.2" text-anchor="middle" font-size="11.5" font-weight="700" fill="currentColor">½×</text></symbol>
+  <symbol id="t-click" viewBox="0 0 24 24"><path d="M10 10l3.3 10 1.7-4.4 4.4-1.7z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M10 3.5v2.6M3.5 10h2.6M5.4 5.4l1.8 1.8M14.6 5.4l-1.8 1.8M5.4 14.6l1.8-1.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+  <symbol id="t-cmd" viewBox="0 0 24 24"><text x="12" y="17.4" text-anchor="middle" font-size="15.5" font-weight="500" fill="currentColor">⌘</text></symbol>
+  <symbol id="t-face" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="3" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M6.6 18.4a6.4 6.4 0 0 1 10.8 0" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+  <symbol id="t-mp4" viewBox="0 0 24 24"><rect x="3.5" y="4.5" width="17" height="15" rx="2.2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M7.5 4.5v15M16.5 4.5v15M3.5 9.5h4M3.5 14.5h4M16.5 9.5h4M16.5 14.5h4" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+  <symbol id="t-gif" viewBox="0 0 24 24"><rect x="3" y="5.5" width="18" height="13" rx="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/><text x="12" y="15.3" text-anchor="middle" font-size="7.6" font-weight="800" fill="currentColor">GIF</text></symbol>
+  <!-- The record bar's and the editor's own symbols -->
+  <symbol id="r-area" viewBox="0 0 24 24"><rect x="3.5" y="5.5" width="17" height="13" rx="2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-dasharray="3.2 2.4"/></symbol>
+  <symbol id="r-sound" viewBox="0 0 24 24"><path d="M3.5 9.5h3.2L11 5.8v12.4l-4.3-3.7H3.5z" fill="currentColor"/><path d="M14.8 9.2a4 4 0 0 1 0 5.6M17.4 6.6a7.6 7.6 0 0 1 0 10.8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+  <symbol id="r-sound-off" viewBox="0 0 24 24"><path d="M3.5 9.5h3.2L11 5.8v12.4l-4.3-3.7H3.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3 3.5l17.5 17" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="r-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3" fill="currentColor"/><path d="M5.8 11a6.2 6.2 0 0 0 12.4 0M12 17.2v3.3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+  <symbol id="r-mic-off" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5.8 11a6.2 6.2 0 0 0 12.4 0M12 17.2v3.3M3.5 3.5l17 17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="r-cam" viewBox="0 0 24 24"><rect x="3" y="6.5" width="12.5" height="11" rx="2.6" fill="currentColor"/><path d="M15.5 10.6l5-2.9v8.6l-5-2.9z" fill="currentColor"/></symbol>
+  <symbol id="r-cam-off" viewBox="0 0 24 24"><rect x="3" y="6.5" width="12.5" height="11" rx="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M15.5 10.6l5-2.9v8.6l-5-2.9M2.5 3.5l17 17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="r-rec" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="5" fill="currentColor"/></symbol>
+  <symbol id="e-play" viewBox="0 0 24 24"><path d="M7.5 4.8v14.4L19.5 12z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+  <symbol id="e-pause" viewBox="0 0 24 24"><rect x="6" y="4.5" width="4.4" height="15" rx="1.2" fill="currentColor"/><rect x="13.6" y="4.5" width="4.4" height="15" rx="1.2" fill="currentColor"/></symbol>
+  <symbol id="e-face" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="currentColor"/><circle cx="12" cy="9.6" r="3.4" fill="#2a2a2e"/><path d="M5.8 18.2a7.2 7.2 0 0 1 12.4 0A9.5 9.5 0 0 1 5.8 18.2z" fill="#2a2a2e"/></symbol>
+  <symbol id="e-fast" viewBox="0 0 24 24"><path d="M3.5 6.5l8 5.5-8 5.5zM12.5 6.5l8 5.5-8 5.5z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></symbol>
 </defs></svg>
 <header class="nav">
   <div class="wrap">
-    <a class="brand" href="#top"><img src="media/icon.svg" alt="">QuickSnip</a>
+    <a class="brand" href="#top"><img src="media/icon.svg" alt=""><span>QuickSnip</span></a>
+    <div class="tabs" role="tablist" aria-label="What QuickSnip does">
+      <button type="button" role="tab" id="tab-shot" data-tab="shot" aria-controls="panel-shot" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#t-area"/></svg>Screenshots</button>
+      <button type="button" role="tab" id="tab-record" data-tab="record" aria-controls="panel-record" aria-selected="false" tabindex="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#t-rec"/></svg>Recording</button>
+    </div>
     <nav aria-label="Sections">
-      <a href="#features">Features</a>
-      <a href="#record">Record</a>
-      <a href="#shortcuts">Shortcuts</a>
+      <a href="#features" data-section="features">Features</a>
+      <a href="#shortcuts" data-section="shortcuts">Shortcuts</a>
       <a href="#install">Install</a>
       <a href="#privacy">Privacy</a>
     </nav>
@@ -312,17 +601,18 @@
 </header>
 
 <main id="top">
+<div id="panel-shot" role="tabpanel" aria-labelledby="tab-shot">
   <section class="hero">
     <div class="hero-grid">
       <div class="hero-copy">
         <h1>Select. Press <span class="grad">C</span>.<br> It’s on your clipboard.</h1>
-        <p class="lede">QuickSnip is a fast, keyboard-first screenshot tool for macOS. Press <span class="combo"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>K</kbd></span>, pick an area or a window, mark it up if you want, and finish with one key. <span class="combo"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>L</kbd></span> records your screen instead.</p>
+        <p class="lede">QuickSnip is a fast, keyboard-first screenshot tool for macOS. Press <span class="combo"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>K</kbd></span>, pick an area or a window, mark it up if you want, and finish with one key. <span class="combo"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>L</kbd></span> <a href="#recording" data-tab-link="record">records your screen</a> instead.</p>
         <div class="install">
           <div class="cmd"><code id="brew-cmd">brew install --cask yvorcer/tap/quicksnip</code><button class="copy-btn" type="button" data-copy="brew-cmd">Copy</button></div>
           <div class="hint">Or press <kbd>C</kbd> on this page. No Homebrew? <a href="https://github.com/Yvorcer/homebrew-tap/releases/latest">Download the app</a></div>
         </div>
         <button class="watch" type="button" id="watch"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18"><circle cx="12" cy="12" r="11" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M10 8.2v7.6l6-3.8z" fill="currentColor"/></svg>Watch the demo with sound</button>
-        <p class="meta">Version 1.6.0 · macOS 14 or later · Apple Silicon and Intel · Free</p>
+        <p class="meta">Version 1.7.0 · macOS 14 or later · Apple Silicon and Intel · Free</p>
       </div>
       <div class="stage">
         <img class="desk" src="media/night-desk-1400.webp" srcset="media/night-desk-1400.webp 1400w, media/night-desk-2400.webp 2400w"
@@ -335,7 +625,7 @@
     </div>
     <div class="wrap">
       <ul class="facts">
-        <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l20 20"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M5 12.6a10 10 0 0 1 5.4-2.8"/><path d="M19 12.6a10 10 0 0 0-2.4-1.8"/><path d="M1.8 8.9a15 15 0 0 1 4.6-2.8"/><path d="M22.2 8.9a15 15 0 0 0-11-3.8"/><circle cx="12" cy="20" r=".6" fill="currentColor"/></svg>No network code</li>
+        <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l20 20"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M5 12.6a10 10 0 0 1 5.4-2.8"/><path d="M19 12.6a10 10 0 0 0-2.4-1.8"/><path d="M1.8 8.9a15 15 0 0 1 4.6-2.8"/><path d="M22.2 8.9a15 15 0 0 0-11-3.8"/><circle cx="12" cy="20" r=".6" fill="currentColor"/></svg>Online only when you ask</li>
         <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21.5s7.5-3.4 7.5-9.6V5.4L12 2.5 4.5 5.4v6.5c0 6.2 7.5 9.6 7.5 9.6z"/><path d="M8.8 12l2.2 2.2 4.2-4.4"/></svg>No tracking, no accounts</li>
         <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2.5"/><rect x="9.5" y="9.5" width="5" height="5" rx="1"/><path d="M9.5 2v3M14.5 2v3M9.5 19v3M14.5 19v3M2 9.5h3M2 14.5h3M19 9.5h3M19 14.5h3"/></svg>Native on Apple Silicon and Intel</li>
         <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3.5" width="19" height="13" rx="2"/><path d="M8.5 20.5h7M12 16.5v4"/></svg>macOS 14 and later</li>
@@ -380,7 +670,7 @@
             <div class="chip" aria-hidden="true"><i><svg class="ico"><use href="#t-magnifier"/></svg></i><i><svg class="ico"><use href="#t-nudge"/></svg></i><i><svg class="ico"><use href="#t-resize"/></svg></i></div>
           </div>
           <div class="feature-body"><h3>Pixel-accurate</h3>
-            <p>A magnifier shows the pixels and color under the cursor. Nudge with the arrow keys, resize with the handles. Captures are full Retina resolution and never resampled.</p></div>
+            <p>A magnifier shows the pixels and color under the cursor, and <kbd>I</kbd> copies that color as hex and RGB. Nudge with the arrow keys, resize with the handles. Captures are full Retina resolution and never resampled.</p></div>
         </article>
         <article class="feature">
           <div class="media">
@@ -416,7 +706,7 @@
             <div class="chip" aria-hidden="true"><i><svg class="ico"><use href="#t-pen"/></svg></i><i><svg class="ico"><use href="#t-highlighter"/></svg></i></div>
           </div>
           <div class="feature-body"><h3>Pen and highlighter</h3>
-            <p><kbd>D</kbd> draws freehand. <kbd>H</kbd> highlights text without hiding it.</p></div>
+            <p><kbd>D</kbd> draws freehand. <kbd>H</kbd> highlights text without hiding it. A lazy mouse keeps shaky strokes smooth.</p></div>
         </article>
         <article class="feature">
           <div class="media">
@@ -463,21 +753,6 @@
     </div>
   </section>
 
-  <section class="block" id="record">
-    <div class="wrap">
-      <p class="eyebrow">Screen recording</p>
-      <h2>Record your screen, then edit it in seconds.</h2>
-      <p class="section-lede">Press <span class="combo"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>L</kbd></span> and a record bar opens, with a key for everything. Stop, and a dark editor with glass controls trims, speeds up and exports. Needs macOS 15 Sequoia or later.</p>
-      <div class="keys">
-        <div class="key-card"><kbd>A</kbd><h3>Area, window or screen</h3><p>Draw an area like a screenshot. <kbd>W</kbd> records one window, <kbd>F</kbd> the full screen.</p></div>
-        <div class="key-card"><kbd>C</kbd><h3>Your face</h3><p>A round camera bubble at the bottom right. <kbd>S</kbd> records the Mac’s sound, <kbd>M</kbd> the mic.</p></div>
-        <div class="key-card"><kbd>G</kbd><h3>Faster or slower</h3><p>Speed parts up 2×, 4× or 8×, or slow them to 0.25× or 0.5×, each at its own speed.</p></div>
-        <div class="key-card"><kbd>K</kbd><h3>Clicks and keys</h3><p>Show your clicks (<kbd>P</kbd>) and shortcuts afterwards, not up front. Plain typing is never noted.</p></div>
-      </div>
-      <p class="note">A pulsing red frame shows what’s being recorded and stays out of the video. Press <kbd>⌘</kbd><kbd>⇧</kbd><kbd>L</kbd> again to stop. Trim, mute the sound or the mic, pick MP4 or GIF with its size shown, then <kbd>C</kbd> copies and <kbd>S</kbd> saves.</p>
-    </div>
-  </section>
-
   <section class="block" id="shortcuts">
     <div class="wrap">
       <p class="eyebrow">Keyboard shortcuts</p>
@@ -493,6 +768,7 @@
             <tr><td><span class="combo"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>S</kbd></span></td><td>Save As…</td></tr>
             <tr><td><kbd>P</kbd></td><td>Pin to screen</td></tr>
             <tr><td><kbd>F</kbd></td><td>Select the full screen</td></tr>
+            <tr><td><kbd>I</kbd></td><td>Copy the color under the pointer</td></tr>
             <tr><td><kbd>Esc</kbd> · right-click · <kbd>⌘</kbd><kbd>⇧</kbd><kbd>K</kbd></td><td>Close, at any point</td></tr>
           </table>
         </div>
@@ -521,28 +797,6 @@
           </table>
         </div>
         <div class="table">
-          <h3>Recording</h3>
-          <table>
-            <tr><td><span class="combo"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>L</kbd></span></td><td>Record bar, or stop recording</td></tr>
-            <tr><td><kbd>A</kbd> · <kbd>W</kbd> · <kbd>F</kbd></td><td>Area · one window · full screen</td></tr>
-            <tr><td><kbd>S</kbd> · <kbd>M</kbd> · <kbd>C</kbd></td><td>Mac’s sound · mic · camera</td></tr>
-            <tr><td><kbd>T</kbd></td><td>Count down 3-2-1</td></tr>
-            <tr><td><kbd>Return</kbd> · <kbd>R</kbd></td><td>Start recording</td></tr>
-            <tr><td><kbd>Esc</kbd> · right-click</td><td>Close the record bar</td></tr>
-          </table>
-        </div>
-        <div class="table">
-          <h3>Video editor</h3>
-          <table>
-            <tr><td><kbd>Space</kbd></td><td>Play and pause</td></tr>
-            <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>Step a frame (<kbd>⇧</kbd> for a second)</td></tr>
-            <tr><td><kbd>G</kbd> · click a part</td><td>2×, 4×, 8×, 0.25×, 0.5×</td></tr>
-            <tr><td><kbd>P</kbd> · <kbd>K</kbd> · <kbd>F</kbd></td><td>Show clicks · shortcuts · face</td></tr>
-            <tr><td><kbd>C</kbd> · <kbd>S</kbd></td><td>Copy · save</td></tr>
-            <tr><td><kbd>Delete</kbd></td><td>Remove a speed part, or the recording</td></tr>
-          </table>
-        </div>
-        <div class="table">
           <h3>Pins</h3>
           <table>
             <tr><td>Drag</td><td>Move</td></tr>
@@ -556,16 +810,196 @@
       </div>
     </div>
   </section>
+</div>
+
+<div id="panel-record" role="tabpanel" aria-labelledby="tab-record" hidden>
+  <section class="hero">
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <h1>Select. Press <span class="grad">R</span>.<br> You’re recording.</h1>
+        <p class="lede">QuickSnip records your screen too. Press <span class="combo"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>L</kbd></span>, pick an area, a window or the whole screen, and press <kbd>R</kbd>. Stop, trim it, speed up the slow parts, then press <kbd>C</kbd> to copy an MP4 or GIF.</p>
+        <div class="install">
+          <div class="cmd"><code id="brew-cmd-r">brew install --cask yvorcer/tap/quicksnip</code><button class="copy-btn" type="button" data-copy="brew-cmd-r">Copy</button></div>
+          <div class="hint">Or press <kbd>C</kbd> on this page. No Homebrew? <a href="https://github.com/Yvorcer/homebrew-tap/releases/latest">Download the app</a></div>
+        </div>
+        <a class="watch" href="#rec-features" data-section="features"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18"><circle cx="12" cy="12" r="11" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="12" cy="12" r="4.6" fill="currentColor"/></svg>See everything it records</a>
+        <p class="meta">Version 1.7.0 · Recording needs macOS 15 or later · Free</p>
+      </div>
+      <div class="stage">
+        <img class="desk" src="media/night-desk-1400.webp" srcset="media/night-desk-1400.webp 1400w, media/night-desk-2400.webp 2400w"
+             sizes="(max-width: 900px) 100vw, 62vw" width="2400" height="1600" alt="" loading="lazy">
+        <div class="screen">
+          <div class="scene" data-scene="hero" role="img"
+               aria-label="QuickSnip records the full screen with the camera on: the record bar opens with Shift Command L, F picks the whole screen, C adds your face, R records. Stopping opens the editor, where the recording is trimmed, a slow part sped up to 4×, and clicks and keys are shown before C copies it"></div>
+        </div>
+      </div>
+    </div>
+    <div class="wrap">
+      <ul class="facts">
+        <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#t-speaker"/></svg>The Mac’s sound and your mic</li>
+        <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#t-cam"/></svg>Your face from the camera</li>
+        <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#t-mp4"/></svg>MP4 or GIF</li>
+        <li><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="3.5" width="19" height="13" rx="2"/><path d="M8.5 20.5h7M12 16.5v4"/></svg>macOS 15 and later</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="block" id="rec-keys">
+    <div class="wrap">
+      <p class="eyebrow">A key for everything</p>
+      <h2>Set it up without a single click.</h2>
+      <p class="section-lede">The record bar has a key for every choice, and remembers them for next time.</p>
+      <div class="keys">
+        <div class="key-card"><kbd>A</kbd><h3>Area, window or screen</h3><p>Draw an area like a screenshot. <kbd>W</kbd> records one window, <kbd>F</kbd> the full screen.</p></div>
+        <div class="key-card"><kbd>S</kbd><h3>Sound</h3><p>Records the Mac’s sound. <kbd>M</kbd> adds your microphone.</p></div>
+        <div class="key-card"><kbd>C</kbd><h3>Camera</h3><p>Your face in a bubble you can drag to any corner.</p></div>
+        <div class="key-card"><kbd>T</kbd><h3>Countdown</h3><p>Counts 3-2-1 first, so you’re ready when it starts.</p></div>
+      </div>
+      <p class="note"><kbd>Return</kbd> or <kbd>R</kbd> starts recording, and <kbd>⌘</kbd><kbd>⇧</kbd><kbd>L</kbd> stops it. <kbd>Esc</kbd>, a right-click or <kbd>⌘</kbd><kbd>⇧</kbd><kbd>L</kbd> closes the record bar before you start.</p>
+    </div>
+  </section>
+
+  <section class="block" id="rec-features">
+    <div class="wrap">
+      <p class="eyebrow">Features</p>
+      <h2>Record and edit, entirely from the keyboard.</h2>
+
+      <div class="features">
+        <article class="feature">
+          <div class="media">
+            <div class="scene" data-scene="pick" role="img" aria-label="With the record bar open, an area is dragged out, then W highlights one window to record, then F selects the whole screen"></div>
+            <div class="chip" aria-hidden="true"><i><svg class="ico"><use href="#t-area"/></svg></i><i><svg class="ico"><use href="#t-window"/></svg></i><i><svg class="ico"><use href="#t-fullscreen"/></svg></i></div>
+          </div>
+          <div class="feature-body"><h3>An area, a window or the whole screen</h3>
+            <p>Drag an area the way you select a screenshot. <kbd>W</kbd> records one window and follows it if it moves. <kbd>F</kbd> records the full screen.</p></div>
+        </article>
+        <article class="feature">
+          <div class="media">
+            <div class="scene" data-scene="live" role="img" aria-label="A red frame pulses around the window being recorded while the menu bar counts the time; its menu pauses, resumes and stops the recording"></div>
+            <div class="chip left" aria-hidden="true"><i><svg class="ico"><use href="#t-rec"/></svg></i><i><svg class="ico"><use href="#t-pause"/></svg></i><i><svg class="ico"><use href="#t-stop"/></svg></i></div>
+          </div>
+          <div class="feature-body"><h3>You can see what’s recorded</h3>
+            <p>A red frame pulses around it, and stays out of the video. The menu bar shows the time, with Pause, Stop and Discard.</p></div>
+        </article>
+        <article class="feature">
+          <div class="media">
+            <div class="scene" data-scene="face" role="img" aria-label="The camera turns on in the record bar and a round bubble with a face appears; it is dragged to the top left corner before recording, and to the bottom left while recording"></div>
+            <div class="chip" aria-hidden="true"><i><svg class="ico"><use href="#t-cam"/></svg></i><i><svg class="ico"><use href="#t-move"/></svg></i></div>
+          </div>
+          <div class="feature-body"><h3>Your face in a corner</h3>
+            <p><kbd>C</kbd> turns on the camera, and the bubble shows right away so you can check how you look. Drag it to any corner, before or while you record, and the video follows.</p></div>
+        </article>
+        <article class="feature">
+          <div class="media">
+            <div class="scene" data-scene="looks" role="img" aria-label="The camera bubble changes look: a circle with a white border, a circle with soft edges, a square with a border, a plain square, and a square with soft edges"></div>
+            <div class="chip" aria-hidden="true"><i><svg class="ico"><use href="#t-circle"/></svg></i><i><svg class="ico"><use href="#t-square"/></svg></i><i><svg class="ico"><use href="#t-ring"/></svg></i><i><svg class="ico"><use href="#t-soft"/></svg></i></div>
+          </div>
+          <div class="feature-body"><h3>Choose how your face looks</h3>
+            <p>A circle or a square, with a white border, or soft edges that fade your face into the video. Settings → Recording shows a live preview.</p></div>
+        </article>
+        <article class="feature">
+          <div class="media">
+            <div class="scene" data-scene="sound" role="img" aria-label="In the record bar, the Mac's sound, the microphone and the countdown are turned on; recording starts after a 3, 2, 1 countdown"></div>
+            <div class="chip" aria-hidden="true"><i><svg class="ico"><use href="#t-speaker"/></svg></i><i><svg class="ico"><use href="#t-mic"/></svg></i><i><svg class="ico"><use href="#t-timer"/></svg></i></div>
+          </div>
+          <div class="feature-body"><h3>Sound and a countdown</h3>
+            <p><kbd>S</kbd> records the Mac’s sound and <kbd>M</kbd> the microphone. <kbd>T</kbd> counts down 3-2-1 before it starts.</p></div>
+        </article>
+        <article class="feature">
+          <div class="media">
+            <div class="scene" data-scene="trim" role="img" aria-label="In the video editor, both ends of the timeline are dragged in to trim, one part is sped up to 4× and another slowed to 0.5×, then the edit plays"></div>
+            <div class="chip" aria-hidden="true"><i><svg class="ico"><use href="#t-trim"/></svg></i><i><svg class="ico"><use href="#t-fast"/></svg></i><i><svg class="ico"><use href="#t-slow"/></svg></i></div>
+          </div>
+          <div class="feature-body"><h3>Trim and change the speed</h3>
+            <p>Drag the ends to trim. Drag across the lane under the frames to speed a part up, and <kbd>G</kbd> steps it through 2×, 4×, 8×, then slow motion. The sound keeps its pitch.</p></div>
+        </article>
+        <article class="feature">
+          <div class="media">
+            <div class="scene" data-scene="overlays" role="img" aria-label="In the editor, Clicks and Keys are turned on: yellow rings show each click and a dark pill shows each shortcut as the video plays; the face is dragged to the top left corner"></div>
+            <div class="chip" aria-hidden="true"><i><svg class="ico"><use href="#t-click"/></svg></i><i><svg class="ico"><use href="#t-cmd"/></svg></i><i><svg class="ico"><use href="#t-face"/></svg></i></div>
+          </div>
+          <div class="feature-body"><h3>Clicks and keys, decided afterwards</h3>
+            <p><kbd>P</kbd> shows your clicks and <kbd>K</kbd> the shortcuts you pressed, never plain typing. <kbd>F</kbd> shows or hides your face; drag it to put it in another corner.</p></div>
+        </article>
+        <article class="feature">
+          <div class="media">
+            <div class="scene" data-scene="export" role="img" aria-label="The editor's export bar switches from MP4 to GIF with the size shown, then Copy makes the GIF and copies it, and Save saves it to the Desktop"></div>
+            <div class="chip low" aria-hidden="true"><i><svg class="ico"><use href="#t-mp4"/></svg></i><i><svg class="ico"><use href="#t-gif"/></svg></i><i><svg class="ico"><use href="#t-copy"/></svg></i><i><svg class="ico"><use href="#t-save"/></svg></i></div>
+          </div>
+          <div class="feature-body"><h3>MP4 or GIF, then one key</h3>
+            <p>See the size before you export. <kbd>C</kbd> copies the video, ready to paste into a chat, and <kbd>S</kbd> saves it next to your screenshots.</p></div>
+        </article>
+      </div>
+
+      <div class="extras">
+        <p><strong>Fix it afterwards.</strong> Mute the Mac’s sound or the mic if one was recorded by accident. <span class="combo"><kbd>⌘</kbd><kbd>Z</kbd></span> undoes any edit, and closing asks before an unsaved recording is deleted.</p>
+        <p><strong>Picks up where you left off.</strong> The record bar remembers your choices, and new recordings put your face in the corner you used last.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="rec-shortcuts">
+    <div class="wrap">
+      <p class="eyebrow">Keyboard shortcuts</p>
+      <h2>Every action has a key, and you can change them.</h2>
+      <p class="section-lede">These are the defaults. To change the record shortcut or any key in the record bar, choose <strong>Keyboard Shortcuts…</strong> from QuickSnip’s menu-bar menu. Hover any button in the record bar to see its current key.</p>
+      <div class="tables">
+        <div class="table">
+          <h3>Record bar</h3>
+          <table>
+            <tr><td><span class="combo"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>L</kbd></span></td><td>Open the record bar</td></tr>
+            <tr><td><kbd>A</kbd> · <kbd>W</kbd> · <kbd>F</kbd></td><td>Area · one window · full screen</td></tr>
+            <tr><td><kbd>S</kbd> · <kbd>M</kbd></td><td>Mac’s sound · microphone</td></tr>
+            <tr><td><kbd>C</kbd></td><td>Camera</td></tr>
+            <tr><td><kbd>T</kbd></td><td>Count down 3-2-1</td></tr>
+            <tr><td><kbd>Return</kbd> · <kbd>R</kbd></td><td>Start recording</td></tr>
+            <tr><td><kbd>Esc</kbd> · right-click</td><td>Close the record bar</td></tr>
+          </table>
+        </div>
+        <div class="table">
+          <h3>Video editor</h3>
+          <table>
+            <tr><td><kbd>Space</kbd></td><td>Play and pause</td></tr>
+            <tr><td><kbd>←</kbd> <kbd>→</kbd></td><td>Step a frame (<kbd>⇧</kbd> for a second)</td></tr>
+            <tr><td>Drag the ends</td><td>Trim</td></tr>
+            <tr><td>Drag across the lane</td><td>Speed a part up</td></tr>
+            <tr><td><kbd>G</kbd> · click a part</td><td>2×, 4×, 8×, 0.25×, 0.5×</td></tr>
+            <tr><td><kbd>Delete</kbd></td><td>Remove a speed part, or the recording</td></tr>
+            <tr><td><span class="combo"><kbd>⌘</kbd><kbd>Z</kbd></span> · <span class="combo"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>Z</kbd></span></td><td>Undo / redo</td></tr>
+          </table>
+        </div>
+        <div class="table">
+          <h3>While recording</h3>
+          <table>
+            <tr><td><span class="combo"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>L</kbd></span></td><td>Stop and open the editor</td></tr>
+            <tr><td>Menu bar time</td><td>Pause, Stop or Discard</td></tr>
+            <tr><td>Drag the bubble</td><td>Move your face to a corner</td></tr>
+          </table>
+        </div>
+        <div class="table">
+          <h3>Show and export</h3>
+          <table>
+            <tr><td><kbd>P</kbd> · <kbd>K</kbd> · <kbd>F</kbd></td><td>Clicks · shortcuts · face</td></tr>
+            <tr><td>Drag the face</td><td>Put it in another corner</td></tr>
+            <tr><td><kbd>C</kbd></td><td>Copy</td></tr>
+            <tr><td><kbd>S</kbd></td><td>Save next to your screenshots</td></tr>
+            <tr><td><span class="combo"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>S</kbd></span></td><td>Save As…</td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
 
   <section class="block" id="install">
     <div class="wrap">
       <p class="eyebrow">Install</p>
       <h2>Free, for macOS 14 Sonoma or later.</h2>
-      <p class="section-lede">Runs natively on Apple Silicon and Intel Macs.</p>
+      <p class="section-lede">Runs natively on Apple Silicon and Intel Macs. Screen recording needs macOS 15 Sequoia or later.</p>
       <ol class="steps">
         <li><div><h3>Install with Homebrew</h3>
           <div class="cmd"><code id="brew-cmd-2">brew install --cask yvorcer/tap/quicksnip</code><button class="copy-btn" type="button" data-copy="brew-cmd-2">Copy</button></div></div></li>
-        <li><div><h3>Press <span class="combo"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>K</kbd></span></h3>
+        <li><div><h3>Press <span class="combo"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>K</kbd></span> or <span class="combo"><kbd>⇧</kbd><kbd>⌘</kbd><kbd>L</kbd></span></h3>
           <p>QuickSnip lives in your menu bar, so there’s no window to open.</p></div></li>
         <li><div><h3>Allow Screen Recording</h3>
           <p>The first time, macOS asks for permission. Turn on QuickSnip in <strong>System Settings → Privacy &amp; Security → Screen &amp; System Audio Recording</strong>, then choose <strong>Quit &amp; Reopen</strong>.</p></div></li>
@@ -573,6 +1007,7 @@
       <div class="alt">
         <div><h3>Updating</h3><p>Run <code class="inline">brew upgrade --cask quicksnip</code>. Every release is signed with the same certificate, so updates keep your Screen Recording permission.</p></div>
         <div><h3>Without Homebrew</h3><p><a href="https://github.com/Yvorcer/homebrew-tap/releases/latest">Download the zip</a>, unzip it and drag QuickSnip to Applications. The first time you open it, macOS blocks it: go to <strong>System Settings → Privacy &amp; Security</strong> and click <strong>Open Anyway</strong>.</p></div>
+        <div><h3>Camera, mic and keys</h3><p>The mic and the camera ask for permission the first time you record them. Showing your shortcuts needs <strong>Input Monitoring</strong>; the editor offers to open that setting.</p></div>
       </div>
     </div>
   </section>
@@ -582,8 +1017,9 @@
       <p class="eyebrow">Privacy</p>
       <h2>Your screenshots and recordings never leave your Mac.</h2>
       <div class="trust">
-        <div><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l20 20"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M5 12.6a10 10 0 0 1 5.4-2.8"/><path d="M19 12.6a10 10 0 0 0-2.4-1.8"/><path d="M1.8 8.9a15 15 0 0 1 4.6-2.8"/><path d="M22.2 8.9a15 15 0 0 0-11-3.8"/><circle cx="12" cy="20" r=".6" fill="currentColor"/></svg><h3>No internet, at all</h3><p>QuickSnip has no network code. It doesn’t upload, track or phone home, and it can’t.</p></div>
+        <div><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2l20 20"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M5 12.6a10 10 0 0 1 5.4-2.8"/><path d="M19 12.6a10 10 0 0 0-2.4-1.8"/><path d="M1.8 8.9a15 15 0 0 1 4.6-2.8"/><path d="M22.2 8.9a15 15 0 0 0-11-3.8"/><circle cx="12" cy="20" r=".6" fill="currentColor"/></svg><h3>Online only when you ask</h3><p>QuickSnip doesn’t upload, track or phone home. Its only connection is the Update QuickSnip button, which reads the newest version number from GitHub.</p></div>
         <div><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V6a2 2 0 0 1 2-2h3M15 4h3a2 2 0 0 1 2 2v3M20 15v3a2 2 0 0 1-2 2h-3M9 20H6a2 2 0 0 1-2-2v-3"/><circle cx="12" cy="12" r="2.2"/></svg><h3>Screen Recording, for capturing only</h3><p>macOS requires that permission for any screenshot tool. QuickSnip only uses it to take the screenshots and recordings you ask for.</p></div>
+        <div><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><use href="#t-cam"/></svg><h3>Camera, mic and keys, only when you ask</h3><p>The camera and the mic only record when you turn them on in the record bar. Of your keys, only shortcuts like <span class="combo"><kbd>⌘</kbd><kbd>C</kbd></span> are noted, never plain typing.</p></div>
         <div><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.5l2.3 1.7 2.8-.2.9 2.7 2.4 1.5-.9 2.7.9 2.7-2.4 1.5-.9 2.7-2.8-.2L12 19.3l-2.3-1.7-2.8.2-.9-2.7-2.4-1.5.9-2.7-.9-2.7 2.4-1.5.9-2.7 2.8.2z"/><path d="M9.2 11l1.9 1.9 3.7-3.8"/></svg><h3>Honest about signing</h3><p>QuickSnip isn’t notarized by Apple, which needs a paid developer account. That’s why macOS asks you to allow it the first time.</p></div>
       </div>
     </div>
@@ -592,7 +1028,7 @@
 
 <footer>
   <div class="wrap">
-    <span>QuickSnip 1.6.0 · Made by Yvorcer · Desk photo by <a href="https://unsplash.com/photos/nighttime-desk-setup-with-laptop-lamp-and-city-view-odyglVvZv18">Avtar Singh</a> on Unsplash · Paintings by Monet, Van Gogh and Vermeer (public domain)</span>
+    <span>QuickSnip 1.7.0 · Made by Yvorcer · Desk photo by <a href="https://unsplash.com/photos/nighttime-desk-setup-with-laptop-lamp-and-city-view-odyglVvZv18">Avtar Singh</a> on Unsplash · Paintings by Monet, Van Gogh and Vermeer (public domain)</span>
     <span><a href="https://github.com/Yvorcer/homebrew-tap">Homebrew tap</a> · <a href="https://github.com/Yvorcer/homebrew-tap/releases">Releases</a></span>
   </div>
 </footer>
@@ -637,7 +1073,7 @@
   // Like QuickSnip itself: press C to copy.
   document.addEventListener("keydown", e => {
     if (e.key.toLowerCase() !== "c" || e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
-    if (e.target.closest("input, textarea, [contenteditable]")) return;
+    if (e.target.closest("input, textarea, [contenteditable], [role=tab]")) return;
     e.preventDefault();
     copyCommand("brew-cmd");
   });
@@ -709,6 +1145,988 @@
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     else backToLoop();
   });
+
+  // Tabs: Screenshots and Recording. #recording opens the second, and so does a link to anything in it.
+  const tabs = [...document.querySelectorAll(".tabs [role=tab]")];
+  function showTab(name, scroll) {
+    for (const tab of tabs) {
+      const on = tab.dataset.tab === name;
+      tab.setAttribute("aria-selected", String(on));
+      tab.tabIndex = on ? 0 : -1;
+      document.getElementById(tab.getAttribute("aria-controls")).hidden = !on;
+    }
+    document.body.dataset.tab = name;
+    document.querySelector('meta[name="theme-color"]').content = name === "record" ? "#130A0E" : "#0B1020";
+    if (name === "record") demo.pause();
+    else if (!reduceMotion && demo.getAttribute("src") === loopSrc) demo.play().catch(() => {});
+    if (scroll) window.scrollTo({ top: 0 });
+  }
+  function chooseTab(name) {
+    showTab(name, true);
+    history.replaceState(null, "", name === "record" ? "#recording" : location.pathname + location.search);
+  }
+  tabs.forEach(tab => tab.addEventListener("click", () => chooseTab(tab.dataset.tab)));
+  document.querySelector(".tabs").addEventListener("keydown", e => {
+    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+    const next = tabs[(tabs.indexOf(document.activeElement) + 1) % tabs.length];
+    chooseTab(next.dataset.tab);
+    next.focus();
+  });
+  document.querySelectorAll("[data-tab-link]").forEach(link => link.addEventListener("click", e => {
+    e.preventDefault();
+    chooseTab(link.dataset.tabLink);
+  }));
+  // Features and Shortcuts go to the open tab's own section.
+  document.querySelectorAll("[data-section]").forEach(link => link.addEventListener("click", e => {
+    const prefix = document.body.dataset.tab === "record" ? "rec-" : "";
+    const target = document.getElementById(prefix + link.dataset.section);
+    if (!target) return;
+    e.preventDefault();
+    target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth" });
+  }));
+  function openFromHash() {
+    const id = decodeURIComponent(location.hash.slice(1));
+    if (id === "recording" || id === "record") return showTab("record", false);
+    const target = id && document.getElementById(id);
+    const panel = target && target.closest("[role=tabpanel]");
+    if (!panel) return;
+    showTab(panel.id === "panel-record" ? "record" : "shot", false);
+    target.scrollIntoView();
+  }
+  openFromHash();
+  window.addEventListener("hashchange", openFromHash);
+
+  // ---------- Recording scenes ----------
+  // Each scene builds QuickSnip's recording UI over a still of the demo's desktop, then runs a script: the
+  // pointer moves, keys are pressed, the footage plays. Scripts only advance while their scene is on screen.
+  const M = "media/record/";
+  const LEN = 10.5;                                                           // the footage, in seconds
+  const CLICKS = [[0.7, 0.828, 0.748], [6.1, 0.6875, 0.139], [8.3, 0.765, 0.294]];  // time, x, y of each click in it
+  const KEYS = [[1.0, "⌘V"], [2.75, "⇧⌘K"], [5.25, "⇧⌘K"]];                 // the shortcuts pressed in it
+  const FULL = [0, 0, 1440, 900];
+  const RATES = [2, 4, 8, 0.25, 0.5];
+  const POSE = Symbol("pose");
+  const smooth = p => p < 0.5 ? 2 * p * p : 1 - (-2 * p + 2) ** 2 / 2;
+
+  function mk(tag, cls, parent, html) {
+    const el = document.createElement(tag);
+    if (cls) el.className = cls;
+    if (html != null) el.innerHTML = html;
+    if (parent) parent.appendChild(el);
+    return el;
+  }
+  function place(el, x, y, w, h) {
+    el.style.left = x + "px";
+    el.style.top = y + "px";
+    if (w != null) el.style.width = w + "px";
+    if (h != null) el.style.height = h + "px";
+  }
+  const use = id => `<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#${id}"/></svg>`;
+  const clock = t => { t = Math.max(0, Math.floor(t)); return `${Math.floor(t / 60)}:${String(t % 60).padStart(2, "0")}`; };
+
+  const scenes = [];
+  const sceneObserver = new IntersectionObserver(entries => {
+    for (const { target, isIntersecting } of entries) target.scene.setVisible(isIntersecting);
+  }, { threshold: 0.3 });
+  let lastTick = 0;
+  requestAnimationFrame(function tick(now) {
+    const dt = lastTick ? Math.min(50, now - lastTick) : 0;
+    lastTick = now;
+    for (const s of scenes) s.advance(dt);
+    for (const f of faces) f.step(now);
+    requestAnimationFrame(tick);
+  });
+
+  // Camera faces: each plays the glance and blink after its own random rest, so no two blink together.
+  const FACE_FRAMES = 9, FACE_STEP = 180;
+  const faces = [];
+  const rest = () => 1600 + Math.random() * 1800;
+  function animateFace(el) {
+    if (reduceMotion) return;   // stays on the last frame
+    let shown = FACE_FRAMES - 1, start = performance.now() + Math.random() * 3400;
+    faces.push({
+      step(now) {
+        if (now < start) return;
+        let frame = Math.floor((now - start) / FACE_STEP);
+        if (frame >= FACE_FRAMES - 1) {
+          frame = FACE_FRAMES - 1;
+          start = Math.max(now, start + frame * FACE_STEP) + rest();
+        }
+        if (frame === shown) return;
+        shown = frame;
+        el.style.backgroundPositionX = frame / (FACE_FRAMES - 1) * 100 + "%";
+      },
+    });
+  }
+
+  class Scene {
+    constructor(root, setup, { w = 1440, h = 900, view } = {}) {
+      Object.assign(this, { root, w, h, time: 0, waits: [], frames: new Set(), videos: new Set(), visible: false });
+      root.scene = this;
+      this.world = mk("div", "world", root);
+      this.world.style.width = w + "px";
+      this.world.style.height = h + "px";
+      const media = root.closest(".media");
+      this.chips = media ? media.querySelectorAll(".chip i") : [];
+      this.view(view || [0, 0, w], false);
+      this.script = setup(this);
+      new ResizeObserver(() => this.fit()).observe(root);
+      scenes.push(this);
+      sceneObserver.observe(root);
+    }
+    // Shows the part of the world starting at x, y that is vw wide, gliding there unless told not to.
+    view(v, glide = true) {
+      this.v = v;
+      this.world.classList.toggle("glide", glide && !this.instant);
+      this.fit();
+    }
+    fit() {
+      const [x, y, vw] = this.v;
+      this.world.style.transform = `scale(${this.root.clientWidth / vw}) translate(${-x}px, ${-y}px)`;
+    }
+    advance(dt) {
+      if (!this.visible || this.instant || document.hidden) return;
+      this.time += dt;
+      this.waits = this.waits.filter(w => this.time >= w.at ? (w.resolve(), false) : true);
+      for (const f of [...this.frames]) f();
+    }
+    wait(ms) {
+      return this.instant ? Promise.resolve() : new Promise(resolve => this.waits.push({ at: this.time + ms, resolve }));
+    }
+    tween(ms, fn, curve = smooth) {
+      if (this.instant) { fn(1); return Promise.resolve(); }
+      const start = this.time;
+      return new Promise(resolve => {
+        const f = () => {
+          const p = Math.min(1, (this.time - start) / ms);
+          fn(curve(p));
+          if (p >= 1) { this.frames.delete(f); resolve(); }
+        };
+        this.frames.add(f);
+        f();
+      });
+    }
+    every(fn) { this.frames.add(fn); return () => this.frames.delete(fn); }
+    chip(i) { this.chips.forEach((c, j) => c.classList.toggle("on", j === i)); }
+    // With reduced motion, the script stops here and the scene stays as it is.
+    mark() { if (this.instant) throw POSE; }
+    // An element's box in world coordinates.
+    rect(el) {
+      const r = el.getBoundingClientRect(), wr = this.world.getBoundingClientRect(), k = wr.width / this.w;
+      return [(r.left - wr.left) / k, (r.top - wr.top) / k, r.width / k, r.height / k];
+    }
+    pos(el) { const [x, y, w, h] = this.rect(el); return [x + w / 2, y + h / 2]; }
+    setVisible(on) {
+      this.visible = on;
+      for (const v of this.videos) {
+        if (!on) v.pause();
+        else if (v.wanted && !this.instant) v.play().catch(() => {});
+      }
+      if (on) this.start();
+    }
+    async start() {
+      if (this.started) return;
+      this.started = true;
+      if (reduceMotion) {
+        this.instant = true;
+        try { await this.script(); } catch (e) { if (e !== POSE) console.error(e); }
+        return;
+      }
+      for (;;) await this.script();
+    }
+  }
+
+  async function until(s, done, each, max = 15000) {
+    if (s.instant) return;
+    const end = s.time + max;
+    while (!done() && s.time < end) { if (each) each(); await s.wait(80); }
+    if (each) each();
+  }
+
+  // ----- The screen and what QuickSnip draws on it
+
+  function wall(s) {
+    const img = mk("img", "wall", s.world);
+    img.alt = "";
+    img.decoding = "async";
+    img.loading = "lazy";
+    img.src = M + "desktop.webp";
+    return img;
+  }
+
+  // The demo's footage; it starts loading when its scene first plays.
+  function footage(s, parent = s.world, cls = "foot") {
+    const v = mk("video", cls, parent);
+    v.muted = v.defaultMuted = true;
+    v.playsInline = true;
+    v.setAttribute("playsinline", "");
+    v.setAttribute("muted", "");
+    v.preload = "none";
+    v.poster = M + "desktop.webp";
+    s.videos.add(v);
+    v.need = () => { if (!v.getAttribute("src")) { v.preload = "auto"; v.src = M + "footage.mp4"; } };
+    v.go = () => { v.need(); v.wanted = true; if (s.visible && !s.instant) v.play().catch(() => {}); };
+    v.halt = () => { v.wanted = false; v.pause(); };
+    v.seek = t => {
+      v.need();
+      if (v.readyState >= 1) v.currentTime = t;
+      else v.addEventListener("loadedmetadata", () => { v.currentTime = t; }, { once: true });
+    };
+    return v;
+  }
+
+  // The overlay that picks what to record: dims the screen, highlights a window or frames a selection.
+  function overlay(s) {
+    const ov = mk("div", "ov", s.world), hole = mk("div", "hole", ov);
+    const tag = mk("span", "tag", hole), size = mk("span", "size", hole);
+    for (const k of ["nw", "n", "ne", "e", "se", "s", "sw", "w"]) mk("i", "hd " + k, hole);
+    return {
+      show(on = true) { ov.classList.toggle("on", on); },
+      idle() { hole.className = "hole"; place(hole, 720, 450, 0, 0); },
+      win(r, label) { hole.className = "hole win"; place(hole, ...r); tag.textContent = label; },
+      sel(r, { handles = true } = {}) {
+        hole.className = "hole sel" + (handles ? " handles" : "") + (r[2] >= 1440 ? " full" : "");
+        place(hole, ...r);
+        size.textContent = `${Math.round(r[2])} × ${Math.round(r[3])}`;
+      },
+    };
+  }
+
+  const BAR = [["A", "r-area"], ["W", "t-window"], ["F", "t-fullscreen"], null,
+               ["S", "r-sound"], ["M", "r-mic"], ["C", "r-cam"], ["T", "t-timer"], null, ["X", "t-close"], ["R", "r-rec"]];
+  const SWITCHES = "SMC";   // their symbols change when they're on
+  function recordBar(s) {
+    const bar = mk("div", "rbar", s.world), buttons = {};
+    for (const item of BAR) {
+      if (!item) { mk("span", "sep", bar); continue; }
+      const [key, symbol] = item;
+      buttons[key] = mk("i", key === "R" ? "rec" : "", bar, use(SWITCHES.includes(key) ? symbol + "-off" : symbol));
+      buttons[key].dataset.symbol = symbol;
+    }
+    const api = {
+      show(on = true) { bar.classList.toggle("on", on); },
+      set(key, on) {
+        const b = buttons[key];
+        b.classList.toggle("on", on);
+        if (SWITCHES.includes(key)) b.innerHTML = use(b.dataset.symbol + (on ? "" : "-off"));
+      },
+      async press(key) { buttons[key].classList.add("press"); await s.wait(170); buttons[key].classList.remove("press"); },
+      at(key) { return s.pos(buttons[key]); },
+      reset() { for (const key in buttons) api.set(key, false); api.show(false); },
+    };
+    return api;
+  }
+
+  function recFrame(s) {
+    const f = mk("div", "rframe", s.world);
+    return {
+      show(r, full) {
+        f.classList.toggle("full", !!full);
+        if (full) place(f, ...FULL); else place(f, r[0] - 4, r[1] - 4, r[2] + 8, r[3] + 8);
+        f.classList.add("on");
+      },
+      hide() { f.classList.remove("on"); },
+    };
+  }
+
+  function statusItem(s) {
+    const item = mk("div", "status", s.world, "<b>●</b><span>0:00</span>");
+    const [dot, time] = item.children;
+    return {
+      show(on = true) { item.classList.toggle("on", on); },
+      set(seconds, paused) { dot.textContent = paused ? "❚❚" : "●"; time.textContent = clock(seconds); },
+    };
+  }
+  // Counts the menu bar's time from now, with pauses.
+  function timer(s, status) {
+    const start = s.time;
+    let paused = 0, since = null;
+    status.set(0, false);
+    const stop = s.every(() => status.set(((since ?? s.time) - start - paused) / 1000, since != null));
+    return {
+      pause() { since = s.time; },
+      resume() { paused += s.time - since; since = null; },
+      stop,
+    };
+  }
+
+  function statusMenu(s) {
+    const menu = mk("div", "smenu", s.world,
+      '<div data-k="stop">Stop Recording<small>⇧⌘L</small></div><div data-k="pause">Pause</div><hr><div data-k="discard">Discard Recording</div>');
+    const item = k => menu.querySelector(`[data-k=${k}]`);
+    return {
+      item,
+      show(on = true) { menu.classList.toggle("on", on); },
+      hi(k) { menu.querySelectorAll("div").forEach(d => d.classList.toggle("hi", d.dataset.k === k)); },
+      pauseTitle(text) { item("pause").textContent = text; },
+    };
+  }
+
+  // The camera bubble: 26% of the recorded area's shorter side, 4% in from a corner.
+  function bubble(s) {
+    const b = mk("div", "bub look circle ring", s.world);
+    animateFace(mk("i", "face", b));
+    let area = FULL, corner = "br";
+    const frameAt = c => {
+      const u = Math.min(area[2], area[3]), d = Math.round(u * 0.26), m = Math.round(u * 0.04);
+      return [c[1] === "l" ? area[0] + m : area[0] + area[2] - m - d, c[0] === "t" ? area[1] + m : area[1] + area[3] - m - d, d];
+    };
+    const put = () => {
+      const [x, y, d] = frameAt(corner);
+      place(b, x, y, d, d);
+      b.style.setProperty("--ring", Math.max(2, Math.round(d * 0.018)) + "px");
+    };
+    return {
+      el: b,
+      frameAt,
+      frame: () => [parseFloat(b.style.left), parseFloat(b.style.top), parseFloat(b.style.width)],
+      show(on = true) { b.classList.toggle("on", on); },
+      area(a) { area = a; put(); },
+      corner(c, glide = true) {
+        corner = c;
+        b.classList.toggle("still", !glide);
+        put();
+        b.offsetWidth;
+        b.classList.remove("still");
+      },
+      look({ shape, border, soft }) {
+        b.classList.remove("circle", "square", "ring", "soft");
+        b.classList.add(shape);
+        if (border) b.classList.add("ring");
+        if (soft) b.classList.add("soft");
+        if (!s.instant) b.animate([{ transform: "scale(0.94)" }, { transform: "none" }], { duration: 260, easing: "ease-out" });
+      },
+    };
+  }
+  async function dragBubble(s, bub, cur, corner) {
+    const [x, y, d] = bub.frame(), grab = d / 2;
+    await cur.move(x + grab, y + grab, 800);
+    const [tx, ty] = bub.frameAt(corner);
+    // Let go a little short of the corner; it snaps the rest of the way.
+    const aimX = tx + grab + (corner[1] === "l" ? 70 : -70), aimY = ty + grab + (corner[0] === "t" ? 50 : -50);
+    bub.el.classList.add("drag");
+    await cur.drag(aimX, aimY, 1000, (cx, cy) => place(bub.el, cx - grab, cy - grab));
+    bub.el.classList.remove("drag");
+    bub.corner(corner);
+  }
+
+  function countdown(s) {
+    const box = mk("div", "count", s.world), digit = mk("span", "", box);
+    return {
+      async run(r) {
+        place(box, r[0] + r[2] / 2 - 66, r[1] + r[3] / 2 - 66);
+        box.classList.add("on");
+        for (const n of [3, 2, 1]) { digit.textContent = n; await s.wait(1000); }
+        box.classList.remove("on");
+      },
+    };
+  }
+
+  function cursor(s) {
+    const c = mk("div", "cur", s.world,
+      '<svg viewBox="0 0 22 30"><path d="M3 2v20.5l5-4.6 3.4 7.6 3.2-1.4-3.3-7.4h6.9z" fill="#000" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>');
+    let x = 0, y = 0;
+    const set = (nx, ny) => { x = nx; y = ny; c.style.transform = `translate(${x}px, ${y}px)`; };
+    return {
+      set,
+      show(on = true) { c.classList.toggle("on", on); },
+      move(nx, ny, ms = 650) { const x0 = x, y0 = y; return s.tween(ms, p => set(x0 + (nx - x0) * p, y0 + (ny - y0) * p)); },
+      async click() { c.classList.add("down"); await s.wait(130); c.classList.remove("down"); },
+      async drag(nx, ny, ms, onMove) {
+        c.classList.add("down");
+        const x0 = x, y0 = y;
+        await s.tween(ms, p => { set(x0 + (nx - x0) * p, y0 + (ny - y0) * p); if (onMove) onMove(x, y, p); });
+        c.classList.remove("down");
+      },
+    };
+  }
+
+  function captions(s) {
+    const cap = mk("div", "cap", s.root);
+    return {
+      say(keys, text) {
+        cap.innerHTML = keys.map(k => `<b>${k}</b>`).join("") + `<span>${text}</span>`;
+        cap.classList.add("on");
+      },
+      hide() { cap.classList.remove("on"); },
+    };
+  }
+
+  // ----- The video editor, laid out like EditorWindowController: glow, video, export bar, glass panel.
+
+  function editor(s, { w, h, parent = s.world }) {
+    const ed = mk("div", "ed", parent);
+    ed.style.width = w + "px";
+    ed.style.height = h + "px";
+    mk("div", "ed-glow", ed);
+
+    const top = mk("div", "ed-top", ed);
+    const spin = mk("i", "spin", top), status = mk("span", "ed-status", top), size = mk("span", "ed-size", top);
+    const seg = mk("span", "seg", top, "<b>MP4</b><b>GIF</b>");
+    const [mp4, gif] = seg.children;
+    const save = mk("span", "gbtn", top, "Save"), copy = mk("span", "gbtn pri", top, "Copy");
+
+    // The video at its own shape between the export bar and the panel.
+    const roomW = w - 80, roomH = h - 56 - 204;
+    let vh = roomH, vw = vh * 1.6;
+    if (vw > roomW) { vw = roomW; vh = vw / 1.6; }
+    vw = Math.round(vw); vh = Math.round(vh);
+    const box = mk("div", "ed-vid", ed);
+    place(box, Math.round((w - vw) / 2), Math.round(56 + (roomH - vh) / 2), vw, vh);
+    const video = footage(s, box, "evid");
+    const d = Math.round(vh * 0.26), m = Math.round(vh * 0.04);
+    const face = mk("div", "ed-face look circle ring", box);
+    animateFace(mk("i", "face", face));
+    face.style.setProperty("--ring", Math.max(2, Math.round(d * 0.018)) + "px");
+    const ghost = mk("div", "ed-ghost", box), float = mk("div", "ed-float", box);
+    for (const el of [face, ghost, float]) el.style.width = el.style.height = d + "px";
+    const cornerAt = c => [c[1] === "l" ? m : vw - m - d, c[0] === "t" ? m : vh - m - d];
+    const rip = Math.round(vh * 0.12);
+    const ripples = CLICKS.map(() => {
+      const r = mk("i", "ripple", box);
+      r.style.width = r.style.height = rip + "px";
+      r.style.borderWidth = Math.max(2, rip * 0.05) + "px";
+      return r;
+    });
+    const keys = mk("div", "ed-keys", box);
+    const kh = Math.max(28, Math.round(vh * 0.07));
+    Object.assign(keys.style, { height: kh + "px", fontSize: Math.round(kh * 0.46) + "px", bottom: Math.round(vh * 0.06) + "px",
+                                padding: `0 ${Math.round(kh * 0.45)}px`, borderRadius: kh / 2 + "px" });
+
+    const panel = mk("div", "ed-panel", ed);
+    const row = mk("div", "ed-row", panel);
+    const playBtn = mk("span", "play", row, use("e-play"));
+    const time = mk("span", "time", row);
+    mk("span", "grow", row);
+    const chip = (symbol, title, key, tint) => {
+      const c = mk("span", "echip", row, `${use(symbol)}<span>${title}</span><small>${key}</small>`);
+      c.style.setProperty("--tint", tint);
+      return c;
+    };
+    const chips = {
+      clicks: chip("t-click", "Clicks", "P", "#FFD60A"), keys: chip("t-cmd", "Keys", "K", "#40C8E0"),
+      face: chip("e-face", "Face", "F", "#FF375F"), speed: chip("e-fast", "Speed Up", "G", "#FF9F0A"),
+    };
+    const tl = mk("div", "tl", panel);
+    const stripW = w - 48 - 2 - 40 - 24;
+    const strip = mk("div", "strip", tl);
+    const thumbs = Math.ceil(stripW / 76.8);
+    for (let i = 0; i < thumbs; i++) {
+      const t = mk("i", "", strip);
+      t.style.left = i * 76.8 + "px";
+      t.style.backgroundPositionX = -Math.round(i * 17 / (thumbs - 1)) * 76.8 + "px";
+    }
+    const dimL = mk("b", "dim", strip), dimR = mk("b", "dim", strip);
+    dimL.style.left = "0";
+    dimR.style.right = "0";
+    const kept = mk("div", "kept", tl), hl = mk("div", "handle", tl), hr = mk("div", "handle", tl);
+    const lane = mk("div", "lane", tl);
+    const hint = mk("span", "hint", lane, "Drag here to speed up or slow down a part");
+    const head = mk("div", "head", tl);
+    const X = t => 12 + t / LEN * stripW;
+
+    const st = {};
+    const rateAt = t => (st.parts.find(p => t >= p.a && t < p.b) || { rate: 1 }).rate;
+    // How far into the edited video the recording's moment t is.
+    const outAt = t => {
+      const cuts = [st.a, t, ...st.parts.flatMap(p => [p.a, p.b])].filter(c => c >= st.a && c <= t).sort((p, q) => p - q);
+      let sum = 0;
+      for (let i = 1; i < cuts.length; i++) sum += (cuts[i] - cuts[i - 1]) / rateAt((cuts[i] + cuts[i - 1]) / 2);
+      return sum;
+    };
+    const putFace = (c, glide = true) => {
+      st.corner = c;
+      face.classList.toggle("still", !glide);
+      const [x, y] = cornerAt(c);
+      place(face, x, y);
+      face.offsetWidth;
+      face.classList.remove("still");
+    };
+
+    function draw(t = video.currentTime) {
+      t = Math.min(Math.max(t, st.a), st.b);
+      head.style.left = X(t) + "px";
+      time.textContent = `${clock(outAt(t))} / ${clock(outAt(st.b))}`;
+      CLICKS.forEach(([at, x, y], i) => {
+        const p = (t - at) / 0.6, r = ripples[i];
+        if (!st.clicks || p < 0 || p >= 1) { r.style.display = "none"; return; }
+        const grow = 1 - (1 - p) * (1 - p);
+        r.style.display = "block";
+        r.style.opacity = 1 - p;
+        r.style.transform = `translate(${x * vw - rip / 2}px, ${y * vh - rip / 2}px) scale(${0.35 + 0.65 * grow})`;
+      });
+      const up = KEYS.filter(([at]) => t >= at && t - at < 1.6);
+      if (st.keys && up.length) {
+        keys.textContent = up.slice(-3).map(k => k[1]).join("   ");
+        keys.style.opacity = Math.min(1, (1.6 - (t - up[up.length - 1][0])) / 0.25);
+        keys.style.display = "flex";
+      } else keys.style.display = "none";
+    }
+
+    function render() {
+      dimL.style.width = X(st.a) - 12 + "px";
+      dimR.style.width = stripW - (X(st.b) - 12) + "px";
+      kept.style.left = X(st.a) + "px";
+      kept.style.width = X(st.b) - X(st.a) + "px";
+      hl.style.left = X(st.a) - 12 + "px";
+      hr.style.left = X(st.b) + "px";
+      lane.querySelectorAll(".part").forEach(p => p.remove());
+      hint.hidden = st.parts.length > 0;
+      st.parts.forEach((p, i) => {
+        const el = mk("span", "part" + (p.rate < 1 ? " slow" : "") + (i === st.sel ? " sel" : ""), lane, p.b - p.a > 0.35 ? `${p.rate}×` : "");
+        el.style.left = X(p.a) - 12 + "px";
+        el.style.width = X(p.b) - X(p.a) + "px";
+      });
+      chips.clicks.classList.toggle("on", st.clicks);
+      chips.keys.classList.toggle("on", st.keys);
+      chips.face.classList.toggle("on", st.face);
+      face.classList.toggle("off", !st.face);
+      mp4.classList.toggle("on", st.fmt === "mp4");
+      gif.classList.toggle("on", st.fmt === "gif");
+      size.textContent = st.fmt === "mp4" ? `2880 × 1800 · about ${(6.4 * outAt(st.b) / LEN).toFixed(1)} MB` : "960 × 600 · 15 fps";
+      playBtn.innerHTML = use(st.playing ? "e-pause" : "e-play");
+      draw();
+    }
+
+    s.every(() => {
+      if (!st.playing) return;
+      let t = video.currentTime;
+      if (t >= st.b - 0.04 || video.ended) {
+        if (st.once) { api.pause(); st.done = true; return; }
+        video.currentTime = t = st.a;
+      }
+      const rate = rateAt(t);
+      if (video.playbackRate !== rate) video.playbackRate = rate;
+      draw(t);
+    });
+
+    const api = {
+      video, chips, playBtn, copy, save, mp4, gif,
+      get state() { return st; },
+      reset() {
+        Object.assign(st, { a: 0, b: LEN, parts: [], sel: -1, clicks: false, keys: false, face: true, fmt: "mp4", playing: false, once: false, done: false });
+        api.say("");
+        video.halt();
+        video.playbackRate = 1;
+        putFace("br", false);
+        render();
+      },
+      set(o) { Object.assign(st, o); render(); },
+      seek(t) { video.seek(t); draw(t); },
+      play(once = false) {
+        Object.assign(st, { playing: true, once, done: false });
+        const t = video.currentTime;
+        if (!(t >= st.a && t < st.b - 0.05)) video.seek(st.a);
+        video.go();
+        render();
+      },
+      pause() { st.playing = false; video.halt(); render(); },
+      say(text, busy = false) { status.textContent = text; spin.classList.toggle("on", busy); },
+      async press(el) { el.classList.add("press"); await s.wait(170); el.classList.remove("press"); },
+      // Timeline geometry, in world coordinates.
+      xAt(t) { const [x, , sw] = s.rect(strip); return x + t / LEN * sw; },
+      timeAt(x) { const [sx, , sw] = s.rect(strip); return Math.min(LEN, Math.max(0, (x - sx) / sw * LEN)); },
+      laneY() { const [, y, , lh] = s.rect(lane); return y + lh / 2; },
+      handle(which) { return s.pos(which === "a" ? hl : hr); },
+      handleWidth() { return s.rect(hl)[2]; },
+      trim(which, t) {
+        if (which === "a") st.a = Math.min(Math.max(0, t), st.b - 1);
+        else st.b = Math.max(Math.min(LEN, t), st.a + 1);
+        video.seek(which === "a" ? st.a : st.b - 0.05);
+        render();
+      },
+      addPart(a) { st.parts.push({ a, b: a, rate: 2 }); st.sel = st.parts.length - 1; render(); return st.sel; },
+      stretchPart(i, t) { st.parts[i].b = Math.max(st.parts[i].a, t); render(); },
+      // G: the selected part's next speed
+      async speedUp() {
+        await api.press(chips.speed);
+        const p = st.parts[st.sel];
+        p.rate = RATES[(RATES.indexOf(p.rate) + 1) % RATES.length];
+        render();
+      },
+      // Drags the face to another corner: a dashed outline shows where it lands.
+      async dragFace(cur, corner, ms = 900) {
+        const [bx, by, bw] = s.rect(box), k = bw / vw;
+        const [fx, fy] = cornerAt(st.corner), [tx, ty] = cornerAt(corner), g = d / 2;
+        await cur.move(bx + (fx + g) * k, by + (fy + g) * k, 650);
+        ghost.classList.add("on");
+        float.classList.add("on");
+        await cur.drag(bx + (tx + g + (corner[1] === "l" ? 30 : -30)) * k, by + (ty + g + (corner[0] === "t" ? 20 : -20)) * k, ms, (x, y) => {
+          const lx = (x - bx) / k - g, ly = (y - by) / k - g;
+          place(float, lx, ly);
+          const [gx, gy] = cornerAt((ly + g < vh / 2 ? "t" : "b") + (lx + g < vw / 2 ? "l" : "r"));
+          place(ghost, gx, gy);
+        });
+        ghost.classList.remove("on");
+        float.classList.remove("on");
+        putFace(corner);
+      },
+    };
+    return api;
+  }
+
+  async function trimTo(s, ed, cur, which, t) {
+    const [hx, hy] = ed.handle(which), off = (which === "a" ? -1 : 1) * ed.handleWidth() / 2;
+    await cur.move(hx, hy, 650);
+    await cur.drag(ed.xAt(t) + off, hy, 900, x => ed.trim(which, ed.timeAt(x - off)));
+  }
+  async function speedPart(s, ed, cur, a, b) {
+    const y = ed.laneY();
+    await cur.move(ed.xAt(a), y, 650);
+    const i = ed.addPart(a);
+    await cur.drag(ed.xAt(b), y, 800, x => ed.stretchPart(i, ed.timeAt(x)));
+  }
+
+  // ----- The scenes
+
+  const SCENES = {
+    // The Recording tab's laptop: open the bar, pick the screen, add the camera, record, edit, copy.
+    hero(s) {
+      wall(s);
+      const screen = footage(s), ov = overlay(s), frame = recFrame(s), status = statusItem(s), bar = recordBar(s), bub = bubble(s);
+      const win = mk("div", "edwin", s.world);
+      place(win, 100, 62, 1240, 775);
+      mk("div", "lights", win, "<i></i><i></i><i></i>");
+      const inner = mk("div", "edwin-in", win);
+      inner.style.transform = `scale(${1240 / 1440})`;
+      const ed = editor(s, { w: 1440, h: 900, parent: inner });
+      const cur = cursor(s), cap = captions(s);
+      return async () => {
+        s.view(FULL, false);
+        cap.hide(); ov.show(false); ov.idle(); bar.reset(); frame.hide(); status.show(false);
+        bub.show(false); bub.area(FULL); bub.corner("br", false);
+        win.classList.remove("on"); ed.reset();
+        screen.halt(); screen.classList.remove("on"); screen.seek(0);
+        cur.set(655, 408); cur.show();
+        await s.wait(1000);
+
+        cap.say(["⇧", "⌘", "L"], "Record your screen");
+        ov.show(); bar.show();
+        await s.wait(600);
+        s.view([336, 420, 768]);
+        await s.wait(1400);
+        cap.say(["F"], "The whole screen");
+        await bar.press("F");
+        ov.sel(FULL);
+        await s.wait(1300);
+        cap.say(["C"], "Your face, from the camera");
+        await bar.press("C");
+        bar.set("C", true);
+        s.view(FULL);
+        await s.wait(450);
+        bub.show();
+        await s.wait(1500);
+        cap.say(["R"], "Record");
+        await bar.press("R");
+        await s.wait(200);
+        bar.show(false); ov.show(false); cur.show(false);
+        frame.show(FULL, true); status.set(0); status.show();
+        screen.classList.add("on"); screen.go();
+        await s.wait(1300);
+        cap.hide();
+        await until(s, () => screen.ended || screen.currentTime >= LEN - 0.05, () => status.set(screen.currentTime), 13000);
+
+        cap.say(["⇧", "⌘", "L"], "Stop");
+        frame.hide(); status.show(false); bub.show(false);
+        await s.wait(500);
+        screen.halt(); screen.classList.remove("on");
+        ed.seek(0.2);
+        win.classList.add("on");
+        await s.wait(1300);
+        cur.set(780, 360); cur.show();
+        cap.say([], "Drag the ends to trim");
+        await trimTo(s, ed, cur, "a", 0.6);
+        await trimTo(s, ed, cur, "b", 9.7);
+        cap.say(["G"], "Speed up the slow part");
+        await speedPart(s, ed, cur, 3.3, 5.1);
+        await s.wait(200);
+        await ed.speedUp();
+        await s.wait(800);
+        cap.say(["P"], "Show your clicks");
+        await ed.press(ed.chips.clicks);
+        ed.set({ clicks: true });
+        await s.wait(1000);
+        cap.say(["K"], "and the shortcuts you pressed");
+        await ed.press(ed.chips.keys);
+        ed.set({ keys: true });
+        s.mark();
+        await s.wait(1000);
+        cap.say(["Space"], "Play");
+        await ed.press(ed.playBtn);
+        cur.show(false);
+        ed.play(true);
+        await s.wait(1000);
+        cap.hide();
+        await until(s, () => ed.state.done, null, 12000);
+        cap.say(["C"], "Copied to clipboard");
+        await ed.press(ed.copy);
+        ed.say("Copied video ✓ · 3.9 MB");
+        await s.wait(2600);
+        cap.hide();
+        win.classList.remove("on");
+        await s.wait(700);
+      };
+    },
+
+    // An area, then a window (W), then the full screen (F).
+    pick(s) {
+      wall(s);
+      const ov = overlay(s), bar = recordBar(s), cur = cursor(s);
+      return async () => {
+        ov.show(); ov.idle(); bar.reset(); bar.show(); bar.set("A", true);
+        cur.set(760, 600); cur.show(); s.chip(0);
+        await s.wait(600);
+        await cur.move(250, 230, 800);
+        await cur.drag(830, 640, 1200, (x, y) => ov.sel([250, 230, x - 250, y - 230], { handles: false }));
+        ov.sel([250, 230, 580, 410]);
+        s.mark();
+        await s.wait(1500);
+        s.chip(1);
+        await bar.press("W");
+        bar.set("A", false); bar.set("W", true); ov.idle();
+        await cur.move(560, 400, 700);
+        ov.win([60, 55, 800, 673], "Click to record Preview");
+        await s.wait(1200);
+        await cur.move(1180, 650, 800);
+        ov.win([1000, 421, 390, 398], "Click to record Notes");
+        await s.wait(1400);
+        s.chip(2);
+        await bar.press("F");
+        bar.set("W", false);
+        ov.sel(FULL);
+        await s.wait(1900);
+        ov.show(false); bar.show(false);
+        await s.wait(600);
+      };
+    },
+
+    // Recording a window: the red frame, the time in the menu bar, Pause, Resume and Stop from its menu.
+    live(s) {
+      wall(s);
+      const frame = recFrame(s), status = statusItem(s), menu = statusMenu(s), cur = cursor(s);
+      const target = [910, 70, 360, 461];
+      const open = async () => { await cur.move(1106, 12, 700); await cur.click(); menu.show(); await s.wait(400); };
+      const choose = async k => {
+        const [x, y] = s.pos(menu.item(k));
+        await cur.move(x - 50, y, 450);
+        menu.hi(k);
+        await s.wait(260);
+        await cur.click();
+        menu.show(false); menu.hi(null);
+      };
+      return async () => {
+        menu.show(false); menu.pauseTitle("Pause");
+        frame.show(target); status.show();
+        cur.set(1060, 330); cur.show(); s.chip(0);
+        const time = timer(s, status);
+        await cur.move(1160, 250, 1400);
+        s.mark();
+        await cur.move(1010, 430, 1300);
+        s.chip(1);
+        await open(); await choose("pause");
+        time.pause(); menu.pauseTitle("Resume");
+        await cur.move(1030, 300, 900);
+        await s.wait(900);
+        await open(); await choose("pause");
+        time.resume(); menu.pauseTitle("Pause");
+        await cur.move(1120, 380, 900);
+        await s.wait(900);
+        s.chip(2);
+        await open(); await choose("stop");
+        time.stop(); frame.hide(); status.show(false);
+        await s.wait(1500);
+      };
+    },
+
+    // C turns on the camera; the bubble goes to a corner before and while recording.
+    face(s) {
+      wall(s);
+      const ov = overlay(s), frame = recFrame(s), status = statusItem(s), bar = recordBar(s), bub = bubble(s), cur = cursor(s);
+      return async () => {
+        ov.show(); ov.sel(FULL); bar.reset(); bar.show(); frame.hide(); status.show(false);
+        bub.show(false); bub.area(FULL); bub.corner("br", false);
+        cur.set(900, 560); cur.show(); s.chip(0);
+        await s.wait(500);
+        await cur.move(...bar.at("C"), 800);
+        await cur.click();
+        bar.set("C", true);
+        bub.show();
+        s.mark();
+        await s.wait(1000);
+        s.chip(1);
+        await dragBubble(s, bub, cur, "tl");
+        await s.wait(500);
+        await cur.move(...bar.at("R"), 900);
+        await cur.click();
+        bar.show(false); ov.show(false);
+        frame.show(FULL, true); status.show();
+        const time = timer(s, status);
+        await s.wait(900);
+        await dragBubble(s, bub, cur, "bl");
+        await s.wait(1600);
+        time.stop(); frame.hide(); status.show(false); bub.show(false);
+        await s.wait(700);
+      };
+    },
+
+    // The looks from Settings → Recording, over the footage.
+    looks(s) {
+      wall(s);
+      const screen = footage(s), bub = bubble(s);
+      screen.classList.add("on");
+      screen.loop = true;
+      const looks = [
+        [{ shape: "circle", border: true, soft: false }, 0],
+        [{ shape: "circle", border: false, soft: true }, 3],
+        [{ shape: "square", border: true, soft: false }, 1],
+        [{ shape: "square", border: false, soft: false }, 2],
+        [{ shape: "square", border: false, soft: true }, 3],
+      ];
+      return async () => {
+        bub.area(FULL); bub.corner("br", false); bub.show();
+        screen.go();
+        for (const [look, chip] of looks) {
+          bub.look(look);
+          s.chip(chip);
+          s.mark();
+          await s.wait(1800);
+        }
+      };
+    },
+
+    // The Mac's sound, the mic and the countdown.
+    sound(s) {
+      wall(s);
+      const ov = overlay(s), frame = recFrame(s), bar = recordBar(s), count = countdown(s), cur = cursor(s);
+      const area = [480, 470, 540, 290];
+      return async () => {
+        ov.show(); ov.sel(area); bar.reset(); bar.show(); bar.set("A", true); frame.hide();
+        cur.set(980, 600); cur.show(); s.chip(0);
+        await s.wait(500);
+        await cur.move(...bar.at("S"), 800);
+        await cur.click();
+        bar.set("S", true);
+        await s.wait(500);
+        s.chip(1);
+        await cur.move(...bar.at("M"), 450);
+        await cur.click();
+        bar.set("M", true);
+        await s.wait(500);
+        s.chip(2);
+        await cur.move(...bar.at("T"), 450);
+        await cur.click();
+        bar.set("T", true);
+        s.mark();
+        await s.wait(700);
+        await cur.move(...bar.at("R"), 600);
+        await cur.click();
+        await s.wait(150);
+        bar.show(false); ov.show(false); cur.show(false);
+        await count.run(area);
+        frame.show(area);
+        await s.wait(1900);
+        frame.hide();
+        await s.wait(600);
+      };
+    },
+
+    // Trim both ends, speed one part up to 4×, slow another to 0.5×, play the edit.
+    trim(s) {
+      const ed = editor(s, { w: 800, h: 500 }), cur = cursor(s);
+      return async () => {
+        ed.reset(); ed.seek(0.3);
+        cur.set(420, 200); cur.show(); s.chip(0);
+        await s.wait(500);
+        await trimTo(s, ed, cur, "a", 1.0);
+        await trimTo(s, ed, cur, "b", 9.6);
+        s.chip(1);
+        await speedPart(s, ed, cur, 3.2, 5.4);
+        await s.wait(300);
+        await ed.speedUp();
+        s.mark();
+        await s.wait(500);
+        s.chip(2);
+        await speedPart(s, ed, cur, 6.4, 8.0);
+        for (let i = 0; i < 4; i++) { await s.wait(380); await ed.speedUp(); }
+        await s.wait(400);
+        await cur.move(400, 180, 600);
+        ed.play(true);
+        await until(s, () => ed.state.done, null, 14000);
+        await s.wait(600);
+      };
+    },
+
+    // Clicks (P) and keys (K) on, play, then move the face.
+    overlays(s) {
+      const ed = editor(s, { w: 800, h: 500 }), cur = cursor(s);
+      return async () => {
+        ed.reset(); ed.seek(0);
+        cur.set(420, 200); cur.show(); s.chip(-1);
+        await s.wait(400);
+        s.chip(0);
+        await cur.move(...s.pos(ed.chips.clicks), 800);
+        await cur.click();
+        ed.set({ clicks: true });
+        await s.wait(300);
+        s.chip(1);
+        await cur.move(...s.pos(ed.chips.keys), 500);
+        await cur.click();
+        ed.set({ keys: true });
+        s.mark();
+        await s.wait(300);
+        await cur.move(430, 210, 700);
+        ed.play(true);
+        await until(s, () => ed.video.currentTime >= 3.3, null, 6000);
+        s.chip(2);
+        await ed.dragFace(cur, "tl", 900);
+        await until(s, () => ed.state.done, null, 10000);
+        await s.wait(800);
+      };
+    },
+
+    // MP4 or GIF with its size, then Copy and Save.
+    export(s) {
+      const ed = editor(s, { w: 800, h: 500 }), cur = cursor(s);
+      return async () => {
+        ed.reset(); ed.set({ a: 0.6, b: 9.8 }); ed.play();
+        cur.set(560, 200); cur.show(); s.chip(0);
+        await cur.move(...s.pos(ed.mp4), 900);
+        s.mark();
+        await s.wait(1300);
+        s.chip(1);
+        await cur.move(...s.pos(ed.gif), 500);
+        await cur.click();
+        ed.set({ fmt: "gif" });
+        await s.wait(1400);
+        s.chip(2);
+        await cur.move(...s.pos(ed.copy), 600);
+        await cur.click();
+        ed.say("Making GIF…", true);
+        await s.wait(1200);
+        ed.say("Copied GIF ✓ · 7.4 MB");
+        await s.wait(1600);
+        s.chip(3);
+        await cur.move(...s.pos(ed.save), 500);
+        await cur.click();
+        ed.say("Making GIF…", true);
+        await s.wait(1000);
+        ed.say("Saved to Desktop ✓ · 7.4 MB");
+        await s.wait(2000);
+        ed.pause();
+      };
+    },
+  };
+  const VIEWS = {
+    pick: { view: [40, 40, 1300] },
+    live: { view: [560, 0, 880] },
+    looks: { view: [720, 450, 720] },
+    sound: { view: [430, 450, 720] },
+    trim: { w: 800, h: 500 },
+    overlays: { w: 800, h: 500, view: [96, 40, 610] },
+    export: { w: 800, h: 500, view: [300, 0, 500] },
+  };
+  document.querySelectorAll("[data-scene]").forEach(root =>
+    new Scene(root, SCENES[root.dataset.scene], VIEWS[root.dataset.scene]));
 </script>
 </body>
 </html>
